@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lexi - Person 1 (Frontend Foundation + UI/UX)</title>
+  <link rel="stylesheet" href="style2.css">
+</head>
+
+<body>
+
+  <div class="phone">
+
+    <div class="header">
+      <h1>Lexi</h1>
+    </div>
+
+    <!-- HOME SCREEN -->
+    <div class="screen active" id="home">
+      <div class="card">
+        <h2>Continue Reading</h2>
+        <p>The Otter Who Lost the Moon</p>
+        <button class="btn" onclick="showScreen('reading')">Resume</button>
+      </div>
+
+      <h2>Your Books</h2>
+      <!-- Placeholder content only. Person 2 handles real text/files/OCR. -->
+      <div class="book-list">
+        <div class="book" onclick="showScreen('reading')">The Otter Who Lost the Moon</div>
+        <div class="book" onclick="showScreen('reading')">Small Stones, Big Rivers</div>
+        <div class="book" onclick="showScreen('reading')">Letters to a Cartographer</div>
+        <div class="book" onclick="showScreen('reading')">The Quiet Engine</div>
+      </div>
+    </div>
+
+    <!-- READING SCREEN -->
+    <!-- Structure only: the box that holds text + a play/pause UI element.
+       Person 3 wires up real text-to-speech. Person 4 wires up real highlighting. -->
+    <div class="screen" id="reading">
+      <div class="reading-controls">
+        <button class="btn" onclick="showScreen('home')">Back</button>
+        <button class="icon-btn" id="playPauseBtn">▶</button>
+      </div>
+
+      <h2>The Otter Who Lost the Moon</h2>
+
+      <div class="reading-box">
+        <p id="readingText">
+          On the night the river froze at the edges, Maya the otter noticed something was missing from the water.
+          She had always found the moon there, resting quietly among the ripples, but tonight the surface was dark and
+          still.
+        </p>
+      </div>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <!-- Empty shell only. Person 4 owns the actual controls. -->
+    <div class="screen" id="settings">
+      <h2>Settings</h2>
+      <div class="settings-placeholder">
+        Reading and accessibility settings will go here.
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="nav">
+      <button class="active" onclick="showScreen('home')">Home</button>
+      <button onclick="showScreen('reading')">Reading</button>
+      <button onclick="showScreen('settings')">Settings</button>
+    </div>
+
+  </div>
+
+  <script src="script2.js"></script>
+</body>
+
+</html>
