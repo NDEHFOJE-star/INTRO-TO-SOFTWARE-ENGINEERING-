@@ -1,167 +1,167 @@
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #eef3ee;
-  display: flex;
-  justify-content: center;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: lightblue;
+    display: flex;
+    justify-content: center;
 }
 
 .phone {
-  width: 100%;
-  max-width: 400px;
-  min-height: 100vh;
-  background-color: white;
-  position: relative;
+    width: 100%;
+    max-width: 400px;
+    min-height: 100vh;
+    background-color: white;
+    position: relative;
 }
 
 .header {
-  background-color: #2f5e4b;
-  color: white;
-  padding: 20px;
-  text-align: center;
+    background-color: #2f515e;
+    color: white;
+    padding: 20px;
+    text-align: center;
 }
 
 .header h1 {
-  margin: 0;
-  font-size: 24px;
+    margin: 0;
+    font-size: 24px;
 }
 
 .screen {
-  display: none;
-  padding: 20px;
-  padding-bottom: 90px;
+    display: none;
+    padding: 20px;
+    padding-bottom: 90px;
 }
 
 .screen.active {
-  display: block;
+    display: block;
 }
 
 .card {
-  background-color: #dbe7db;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
+    background-color: #6ba399;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
 .card h2 {
-  margin-top: 0;
-  font-size: 18px;
+    margin-top: 0;
+    font-size: 18px;
 }
 
-.book-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+.passage-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
-.book {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
-  text-align: center;
-  cursor: pointer;
+.passage {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
 }
 
-.book:hover {
-  background-color: #f0f0f0;
+.passage:hover {
+    background-color: #f0f0f0;
 }
 
 /* Reusable button component */
 .btn {
-  background-color: #d98c2b;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  font-size: 15px;
-  cursor: pointer;
+    background-color: #d98c2b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 15px;
+    cursor: pointer;
 }
 
 /* Reusable icon button component (play/pause etc) */
 .icon-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid #ccc;
-  background-color: white;
-  font-size: 16px;
-  cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size: 16px;
+    cursor: pointer;
 }
 
 .reading-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
 .reading-box {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
 }
 
 #readingText {
-  font-size: 20px;
-  line-height: 1.8;
-  color: #222;
-  margin: 0;
+    font-size: 20px;
+    line-height: 1.8;
+    color: #222;
+    margin: 0;
 }
 
 .settings-placeholder {
-  border: 1px dashed #bbb;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
-  color: #777;
+    border: 1px dashed #bbb;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: #777;
 }
 
 .nav {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  border-top: 1px solid #ccc;
-  background-color: white;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    border-top: 1px solid #ccc;
+    background-color: white;
 }
 
 .nav button {
-  flex: 1;
-  padding: 15px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  cursor: pointer;
+    flex: 1;
+    padding: 15px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    cursor: pointer;
 }
 
 .nav button.active {
-  color: #2f5e4b;
-  font-weight: bold;
+    color: #2f5e4b;
+    font-weight: bold;
 }
 
 /* tablet and up*/
 @media (min-width: 600px) {
-  .phone {
-    max-width: 600px;
-  }
+    .phone {
+        max-width: 600px;
+    }
 
-  .book-list {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
+    .book-list {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
 }
 
 /*Laptop/desktop and up*/
 @media (min-width: 1000px) {
-  .phone {
-    max-width: 900px;
-  }
+    .phone {
+        max-width: 900px;
+    }
 
-  .book-list {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-  }
+    .book-list {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
 
-  #readingtext {
-    font-size: 22px;
-  }
+    #readingtext {
+        font-size: 22px;
+    }
 }
