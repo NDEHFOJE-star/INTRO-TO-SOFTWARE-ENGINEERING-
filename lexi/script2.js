@@ -16,6 +16,62 @@ function showScreen(screenId) {
   if (screenId === 'settings') navButtons[2].classList.add('active');
 }
 
+
+
+// ===============================
+// PERSON 3 - TEXT TO SPEECH
+// ===============================
+
+const BACKEND_URL = "http://127.0.0.1:8000";
+
+const playPauseBtn = document.getElementById("playPauseBtn");
+
+let audio = null;
+
+playPauseBtn.addEventListener("click", async function () {
+
+    const textElement = document.getElementById("readingText");
+    const text = textElement.innerText;
+
+    if (!audio) {
+
+        const response = await fetch(`${BACKEND_URL}/api/read-aloud`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                text: text
+            })
+        });
+
+        const data = await response.json();
+
+        audio = new Audio(`${BACKEND_URL}${data.audio_url}`);
+
+        audio.play();
+
+    } else {
+
+        if (audio.paused) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+
+    }
+
+});
+const stopBtn = document.getElementById("stopBtn");
+
+stopBtn.addEventListener("click", function () {
+    if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+    }
+});
+
+
 // NOTE: the play/pause button is intentionally not wired up.
 // It's a UI component only — Person 3 attaches the real
 // text-to-speech logic (play/pause/resume/stop) to it.
