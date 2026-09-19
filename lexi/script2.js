@@ -42,7 +42,8 @@ playPauseBtn.addEventListener("click", async function () {
             },
             body: JSON.stringify({
                 text: text,
-                rate:document.getElementById("speedControl").value
+                rate:document.getElementById("speedControl").value,
+                voice:document.getElementById("voiceControl").value
             })
         });
 
@@ -77,9 +78,18 @@ speedControl.addEventListener("change", function () {
     if (audio) {
         audio.pause();
         audio = null;
+
+    }
+  
+});
+const voiceControl = document.getElementById("voiceControl");
+
+voiceControl.addEventListener("change", function () {
+    if (audio) {
+        audio.pause();
+        audio = null;
     }
 });
-
 
 
 
