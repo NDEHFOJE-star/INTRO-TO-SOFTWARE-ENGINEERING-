@@ -41,13 +41,14 @@ playPauseBtn.addEventListener("click", async function () {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                text: text
+                text: text,
+                rate:document.getElementById("speedControl").value
             })
         });
 
         const data = await response.json();
 
-        audio = new Audio(`${BACKEND_URL}${data.audio_url}`);
+        audio = new Audio(`${BACKEND_URL}${data.audio_url}?t=${Date.now()}`);
 
         audio.play();
 
@@ -70,8 +71,18 @@ stopBtn.addEventListener("click", function () {
         audio.currentTime = 0;
     }
 });
+const speedControl = document.getElementById("speedControl");
+
+speedControl.addEventListener("change", function () {
+    if (audio) {
+        audio.pause();
+        audio = null;
+    }
+});
+
+
 
 
 // NOTE: the play/pause button is intentionally not wired up.
 // It's a UI component only — Person 3 attaches the real
-// text-to-speech logic (play/pause/resume/stop) to it.
+// text-to-speech logic (play/pause/resume/stop) to it. 
