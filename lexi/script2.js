@@ -34,7 +34,7 @@ playPauseBtn.addEventListener("click", async function () {
     const text = textElement.innerText;
 
     if (!audio) {
-
+         try{
         const response = await fetch(`${BACKEND_URL}/api/read-aloud`, {
             method: "POST",
             headers: {
@@ -52,12 +52,18 @@ playPauseBtn.addEventListener("click", async function () {
         audio = new Audio(`${BACKEND_URL}${data.audio_url}?t=${Date.now()}`);
 
         audio.play();
+        audio.play();
 
-    } else {
+            } catch (error) {
+               console.error(error);
+               alert("Could not generate speech.");
+           }
+
+      } else {
 
         if (audio.paused) {
             audio.play();
-        } else {
+         } else {
             audio.pause();
         }
 
