@@ -47,14 +47,25 @@ playPauseBtn.addEventListener("click", async function () {
             })
         });
 
+        if(!response.ok){
+            throw new Error ("Speech generation failed.");
+        }
         const data = await response.json();
 
-        audio = new Audio(`${BACKEND_URL}${data.audio_url}?t=${Date.now()}`);
+        audio = new Audio(
+            `${BACKEND_URL}${data.audio_url}?t=${Date.now()}`
+        );
+        audio.addEventListener("ended", function () {
+    audio = null;
+
+    playPauseBtn.textContent = "▶"
+
+       });
 
         audio.play();
-        audio.play();
-
-            } catch (error) {
+    playPauseBtn.text = "⏸️"
+           
+} catch (error) {
                console.error(error);
                alert("Could not generate speech.");
            }
@@ -63,8 +74,10 @@ playPauseBtn.addEventListener("click", async function () {
 
         if (audio.paused) {
             audio.play();
+            playPauseBtn.textContent = "⏸️"
          } else {
             audio.pause();
+            playPauseBtn.textContent = "▶"
         }
 
     }
@@ -76,6 +89,7 @@ stopBtn.addEventListener("click", function () {
     if (audio) {
         audio.pause();
         audio.currentTime = 0;
+        playPauseBtn.textContent = "▶"
     }
 });
 const speedControl = document.getElementById("speedControl");
