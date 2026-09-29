@@ -22,8 +22,7 @@ function showScreen(screenId) {
 // PERSON 3 - TEXT TO SPEECH
 // ===============================
 
-const BACKEND_URL = "http://127.0.0.1:8000";
-
+const BACKEND_URL = "http://localhost:3000";
 const playPauseBtn = document.getElementById("playPauseBtn");
 
 let audio = null;
@@ -58,7 +57,7 @@ playPauseBtn.addEventListener("click", async function () {
         audio.addEventListener("ended", function () {
     audio = null;
 
-    playPauseBtn.textContent = "▶"
+    playPauseBtn.textContent = "▶️"
 
        });
 
@@ -77,7 +76,7 @@ playPauseBtn.addEventListener("click", async function () {
             playPauseBtn.textContent = "⏸️"
          } else {
             audio.pause();
-            playPauseBtn.textContent = "▶"
+            playPauseBtn.textContent = "▶️"
         }
 
     }
@@ -89,7 +88,7 @@ stopBtn.addEventListener("click", function () {
     if (audio) {
         audio.pause();
         audio.currentTime = 0;
-        playPauseBtn.textContent = "▶"
+        playPauseBtn.textContent = "▶️"
     }
 });
 const speedControl = document.getElementById("speedControl");
