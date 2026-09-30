@@ -44,9 +44,20 @@ playPauseBtn.addEventListener("click", async function () {
       audio = new Audio(
         `${BACKEND_URL}${data.audio_url}?t=${Date.now()}`
       );
+      // When the audio finishes
       audio.addEventListener("ended", function () {
         audio = null;
         playPauseBtn.textContent = "▶️";
+      });
+      // When the audio is paused
+      audio.addEventListener("pause", function () {
+        if (audio && audio.currentTime > 0 && !audio.ended) {
+          playPauseBtn.textContent = "▶️";
+        }
+      });
+      // When the audio starts or resumes
+      audio.addEventListener("play", function () {
+        playPauseBtn.textContent = "⏸️";
       });
       await audio.play();
       playPauseBtn.textContent = "⏸️";
@@ -55,10 +66,12 @@ playPauseBtn.addEventListener("click", async function () {
       alert("Could not generate speech.");
     }
   } else {
+    // Resume the audio if it is paused
     if (audio.paused) {
       await audio.play();
       playPauseBtn.textContent = "⏸️";
     } else {
+      // Pause the audio if it is currently playing
       audio.pause();
       playPauseBtn.textContent = "▶️";
     }
