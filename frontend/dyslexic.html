@@ -374,6 +374,94 @@
   inputText.addEventListener('input', () => renderWords(inputText.value));
 })();
 </script>
+<!-- FONT ACCESSIBILITY CONTROLS -->
+<section class="font-controls">
+    <h2>Reading Settings</h2>
+
+    <label for="fontSelect">Choose Font:</label>
+    <select id="fontSelect">
+        <option value="Arial">Arial</option>
+        <option value="Verdana">Verdana</option>
+        <option value="OpenDyslexic">OpenDyslexic</option>
+        <option value="Georgia">Georgia</option>
+    </select>
+
+    <div class="font-size-controls">
+        <button id="decreaseFont">A−</button>
+        <span id="fontSizeDisplay">18px</span>
+        <button id="increaseFont">A+</button>
+    </div>
+</section>
+
+<style>
+    .font-controls {
+        margin: 20px auto;
+        padding: 20px;
+        max-width: 500px;
+        background: #f5f7fa;
+        border: 1px solid #c9d6e3;
+        border-radius: 12px;
+        font-family: Arial, sans-serif;
+    }
+
+    .font-controls h2 {
+        margin-top: 0;
+    }
+
+    .font-controls select,
+    .font-controls button {
+        padding: 10px 14px;
+        margin: 8px 4px;
+        border-radius: 8px;
+        border: 1px solid #c9d6e3;
+        cursor: pointer;
+    }
+
+    .font-controls button {
+        background: #1e7fe0;
+        color: white;
+        border: none;
+        font-weight: bold;
+    }
+
+    .font-controls button:hover {
+        background: #1668bd;
+    }
+
+    #fontSizeDisplay {
+        margin: 0 10px;
+        font-weight: bold;
+    }
+</style>
+
+<script>
+    const fontSelect = document.getElementById("fontSelect");
+    const increaseFont = document.getElementById("increaseFont");
+    const decreaseFont = document.getElementById("decreaseFont");
+    const fontSizeDisplay = document.getElementById("fontSizeDisplay");
+
+    let currentFontSize = 18;
+
+    fontSelect.addEventListener("change", function () {
+        document.body.style.fontFamily = this.value;
+    });
+
+    increaseFont.addEventListener("click", function () {
+        if (currentFontSize < 32) {
+            currentFontSize += 2;
+            document.body.style.fontSize = currentFontSize + "px";
+            fontSizeDisplay.textContent = currentFontSize + "px";
+        }
+    });
+
+    decreaseFont.addEventListener("click", function () {
+        if (currentFontSize > 12) {
+            currentFontSize -= 2;
+            document.body.style.fontSize = currentFontSize + "px";
+            fontSizeDisplay.textContent = currentFontSize + "px";
+        }
+    });
+</script>
 
 </body>
 </html>
