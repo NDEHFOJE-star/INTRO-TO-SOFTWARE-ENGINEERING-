@@ -12,6 +12,7 @@ function showScreen(screenId) {
   if (screenId === 'home') navButtons[0].classList.add('active');
   if (screenId === 'reading') navButtons[1].classList.add('active');
   if (screenId === 'settings') navButtons[2].classList.add('active');
+  if (screenId !== 'reading') resetAudio();
 }
 // ===============================
 // PERSON 3 - TEXT TO SPEECH
@@ -19,6 +20,12 @@ function showScreen(screenId) {
 const BACKEND_URL = "http://localhost:4000";
 const playPauseBtn = document.getElementById("playPauseBtn");
 let audio = null;
+   function resetAudio(){
+     if (audio){
+       audio.pause();
+       audio = null;
+     }
+     playPauseBtn.textContent = "▶️"
 // PLAY / PAUSE
 playPauseBtn.addEventListener("click", async function () {
   const textElement = document.getElementById("readingText");
