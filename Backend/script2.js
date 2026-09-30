@@ -37,6 +37,7 @@ playPauseBtn.addEventListener("click", async function () {
         })
       });
       if (!response.ok) {
+        const errorData = await response.json();
         throw new Error("Speech generation failed.");
       }
       const data = await response.json();
