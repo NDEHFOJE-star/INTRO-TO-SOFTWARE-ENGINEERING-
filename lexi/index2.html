@@ -27,31 +27,52 @@
       <h2>Your Passages</h2>
       <!-- Placeholder content only. Person 2 handles real text/files/OCR. -->
       <div class="passage-list">
-        <div class="passage" onclick="showScreen('reading')">The Otter Who Lost the Moon</div>
-        <div class="passage" onclick="showScreen('reading')">Small Stones, Big Rivers</div>
-        <div class="passage" onclick="showScreen('reading')">Letters to a Cartographer</div>
-        <div class="passage" onclick="showScreen('reading')">The Quiet Engine</div>
+        <div class="passage" onclick="showScreen('reading')">
+          The Otter Who Lost the Moon
+        </div>
+        <div class="passage" onclick="showScreen('reading')">
+          Small Stones, Big Rivers
+        </div>
+        <div class="passage" onclick="showScreen('reading')">
+          Letters to a Cartographer
+        </div>
+        <div class="passage" onclick="showScreen('reading')">
+          The Quiet Engine
+        </div>
       </div>
     </div>
 
     <!-- READING SCREEN -->
-    <!-- Structure only: the box that holds text + a play/pause UI element.
-       Person 3 wires up real text-to-speech. Person 4 wires up real highlighting. -->
+    <!-- Person 3: text-to-speech controls -->
     <div class="screen" id="reading">
       <div class="reading-controls">
-        <button class="btn" onclick="showScreen('home')">Back</button>
-        <button class="icon-btn" id="playPauseBtn">▶</button>
-        <button class="icon-btn" id="stopBtn">⏹</button>
-        <label for="speedControl">Reading speed</label>
+        <button class="btn" onclick="showScreen('home')">
+          Back
+        </button>
+        <button class="icon-btn" id="playPauseBtn">
+          ▶
+        </button>
+        <button class="icon-btn" id="stopBtn">
+          ⏹
+        </button>
+        <label for="speedControl">
+          Reading speed
+        </label>
         <select id="speedControl">
           <option value="0.75">Slow</option>
           <option value="1" selected>Normal</option>
           <option value="1.25">Fast</option>
         </select>
-        <label for="voiceControl">Voice</label>
+        <label for="voiceControl">
+          Voice
+        </label>
         <select id="voiceControl">
-          <option value="en-US-AriaNeural" selected>Aria</option>
-          <option value="en-US-GuyNeural">Guy</option>
+          <option value="en-US-AriaNeural" selected>
+            Aria
+          </option>
+          <option value="en-US-GuyNeural">
+            Guy
+          </option>
         </select>
       </div>
 
@@ -132,9 +153,15 @@
 
     <!-- BOTTOM NAV -->
     <div class="nav">
-      <button class="active" onclick="showScreen('home')">Home</button>
-      <button onclick="showScreen('reading')">Reading</button>
-      <button onclick="showScreen('settings')">Settings</button>
+      <button class="active" onclick="showScreen('home')">
+        Home
+      </button>
+      <button onclick="showScreen('reading')">
+        Reading
+      </button>
+      <button onclick="showScreen('settings')">
+        Settings
+      </button>
     </div>
 
   </div>
