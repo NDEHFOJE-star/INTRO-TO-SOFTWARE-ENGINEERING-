@@ -7,67 +7,7 @@
   <title>Lexi - Person 1 (Frontend Foundation + UI/UX)</title>
   <link rel="stylesheet" href="style2.css">
 </head>
-<section id="text-input-section">
-  <label for="textInput">Enter or paste text:</label>
-  <textarea id="textInput" rows="6" placeholder="Type or paste text here..."></textarea>
-  <div class="char-count"><span id="charCount">0</span> characters</div>
-  <button id="clearTextBtn">Clear</button>
-  <button id="processTextBtn">Process Text</button>
-</section>
 
-<section id="file-upload-section">
-  <div id="dropZone">
-    <p>Drag & drop a file here, or</p>
-    <label>
-      Browse Files
-      <input type="file" id="fileInput" hidden accept=".txt,.pdf,.doc,.docx,image/*" />
-    </label>
-    <p>Accepted: .txt, .pdf, .docx, images</p>
-  </div>
-  <div id="filePreview" class="hidden">
-    <span id="fileName"></span>
-    <span id="fileSize"></span>
-    <button id="removeFileBtn">Remove</button>
-  </div>
-  <button id="processFileBtn" disabled>Extract & Process</button>
-</section>
-
-<section id="ocr-section">
-  <label>
-    Choose Photo
-    <input type="file" id="imageInput" hidden accept="image/*" />
-  </label>
-  <button id="cameraBtn">Use Camera</button>
-  <video id="cameraStream" class="hidden" autoplay playsinline></video>
-  <button id="captureBtn" class="hidden">Capture</button>
-  <div id="imagePreviewWrap" class="hidden">
-    <img id="imagePreview" alt="Selected" />
-  </div>
-  <button id="runOcrBtn" disabled>Run OCR</button>
-  <div id="ocrProgress" class="hidden">
-    <div class="progress-bar"><div id="progressFill"></div></div>
-    <p id="progressText"></p>
-  </div>
-</section>
-
-<section id="outputSection" class="hidden">
-  <h2>Processed Text</h2>
-  <textarea id="processedOutput" rows="8" readonly></textarea>
-  <button id="copyBtn">Copy</button>
-  <button id="sendToReaderBtn">Send to Reading Engine</button>
-</section>
-
-<div id="toast" class="toast hidden"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-<script src="textCleaner.js"></script>
-<script src="textInput.js"></script>
-<script src="fileUpload.js"></script>
-<script src="ocr.js"></script>
-<script src="app.js"></script>
 <body>
 
   <div class="phone">
@@ -76,74 +16,89 @@
       <h1>Lexi</h1>
     </div>
 
-    <!-- HOME SCREEN -->
+    <!-- HOME SCREEN: shows passages you've previously typed, uploaded, or scanned -->
     <div class="screen active" id="home">
-      <div class="card">
-        <h2>Continue Reading</h2>
-        <p>The Otter Who Lost the Moon</p>
-        <button class="btn" onclick="showScreen('reading')">Resume</button>
-      </div>
-
       <h2>Your Passages</h2>
-      <!-- Placeholder content only. Person 2 handles real text/files/OCR. -->
-      <div class="passage-list">
-        <div class="passage" onclick="showScreen('reading')">
-          The Otter Who Lost the Moon
-        </div>
-        <div class="passage" onclick="showScreen('reading')">
-          Small Stones, Big Rivers
-        </div>
-        <div class="passage" onclick="showScreen('reading')">
-          Letters to a Cartographer
-        </div>
-        <div class="passage" onclick="showScreen('reading')">
-          The Quiet Engine
-        </div>
+      <div class="passage-list" id="passageList">
+        <!-- script2.js fills this in from localStorage each time the page loads -->
       </div>
     </div>
 
     <!-- READING SCREEN -->
-    <!-- Person 3: text-to-speech controls -->
+    <!-- Person 3: text-to-speech controls. Person 2: the "+" panel to add a passage. -->
     <div class="screen" id="reading">
       <div class="reading-controls">
-        <button class="btn" onclick="showScreen('home')">
-          Back
-        </button>
-        <button class="icon-btn" id="playPauseBtn">
-          ▶
-        </button>
-        <button class="icon-btn" id="stopBtn">
-          ⏹
-        </button>
-        <label for="speedControl">
-          Reading speed
-        </label>
+        <button class="btn" onclick="showScreen('home')">Back</button>
+        <button class="icon-btn" id="addPassageBtn" title="Add a passage">+</button>
+        <button class="icon-btn" id="playPauseBtn">▶</button>
+        <button class="icon-btn" id="stopBtn">⏹</button>
+        <label for="speedControl">Reading speed</label>
         <select id="speedControl">
           <option value="0.75">Slow</option>
           <option value="1" selected>Normal</option>
           <option value="1.25">Fast</option>
         </select>
-        <label for="voiceControl">
-          Voice
-        </label>
+        <label for="voiceControl">Voice</label>
         <select id="voiceControl">
-          <option value="en-US-AriaNeural" selected>
-            Aria
-          </option>
-          <option value="en-US-GuyNeural">
-            Guy
-          </option>
+          <option value="en-US-AriaNeural" selected>Aria</option>
+          <option value="en-US-GuyNeural">Guy</option>
         </select>
       </div>
 
-      <h2>The Otter Who Lost the Moon</h2>
+      <h2 id="readingTitle">No Passage Selected</h2>
+
+      <!-- ADD-A-PASSAGE PANEL: hidden until the + button is tapped -->
+      <div id="addPassagePanel" class="hidden">
+
+        <section id="text-input-section">
+          <label for="textInput">Enter or paste text:</label>
+          <textarea id="textInput" rows="6" placeholder="Type or paste text here..."></textarea>
+          <div class="char-count"><span id="charCount">0</span> characters</div>
+          <button id="clearTextBtn">Clear</button>
+          <button id="processTextBtn">Add to Reading</button>
+        </section>
+
+        <section id="file-upload-section">
+          <div id="dropZone">
+            <p>Drag & drop a file here, or</p>
+            <label>
+              Browse Files
+              <input type="file" id="fileInput" hidden accept=".txt,.pdf,.doc,.docx,image/*" />
+            </label>
+            <p>Accepted: .txt, .pdf, .docx, images</p>
+          </div>
+          <div id="filePreview" class="hidden">
+            <span id="fileName"></span>
+            <span id="fileSize"></span>
+            <button id="removeFileBtn">Remove</button>
+          </div>
+          <button id="processFileBtn" disabled>Extract & Add</button>
+        </section>
+
+        <section id="ocr-section">
+          <label>
+            Choose Photo
+            <input type="file" id="imageInput" hidden accept="image/*" />
+          </label>
+          <button id="cameraBtn">Use Camera</button>
+          <video id="cameraStream" class="hidden" autoplay playsinline></video>
+          <button id="captureBtn" class="hidden">Capture</button>
+          <div id="imagePreviewWrap" class="hidden">
+            <img id="imagePreview" alt="Selected" />
+          </div>
+          <button id="runOcrBtn" disabled>Scan & Add</button>
+          <div id="ocrProgress" class="hidden">
+            <div class="progress-bar">
+              <div id="progressFill"></div>
+            </div>
+            <p id="progressText"></p>
+          </div>
+        </section>
+
+      </div>
 
       <div class="reading-box">
-        <p id="readingText">
-          On the night the river froze at the edges, Maya the otter noticed something was missing from the water.
-          She had always found the moon there, resting quietly among the ripples, but tonight the surface was dark and
-          still.
-        </p>
+        <p id="readingText">Tap the + above to type, upload, or scan a passage to read.</p>
       </div>
     </div>
 
@@ -213,18 +168,19 @@
 
     <!-- BOTTOM NAV -->
     <div class="nav">
-      <button class="active" onclick="showScreen('home')">
-        Home
-      </button>
-      <button onclick="showScreen('reading')">
-        Reading
-      </button>
-      <button onclick="showScreen('settings')">
-        Settings
-      </button>
+      <button class="active" onclick="showScreen('home')">Home</button>
+      <button onclick="showScreen('reading')">Reading</button>
+      <button onclick="showScreen('settings')">Settings</button>
     </div>
 
+    <div id="toast" class="toast hidden"></div>
+
   </div>
+
+  <!-- Third-party libraries used by the + panel (file/OCR extraction) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <script src="script2.js"></script>
 
