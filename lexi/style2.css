@@ -93,6 +93,7 @@ body {
     justify-content: flex-start;
     align-items: center;
     margin-bottom: 15px;
+    gap:12px
 }
 
 .reading-box {
