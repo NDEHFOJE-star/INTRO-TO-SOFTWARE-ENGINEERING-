@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Word Highlight — Read Aloud Demo</title>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --panel: #FFFFFF;
+    --text: #1A1A1A;
+    --muted: #55606B;
+    --highlight: #FFE600;
+    --highlight-text: #1A1A1A;
+    --accent: #1E7FE0;
+    --accent-hover: #1668BD;
+    --accent-text: #FFFFFF;
+    --border: #C9D6E3;
+    --ring: #1E7FE0;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12171C;
+      --panel: #1B222A;
+      --text: #F2F5F8;
+      --muted: #9FB0BE;
+      --highlight: #FFE600;
+      --highlight-text: #1A1A1A;
+      --accent: #4FA0FF;
+      --accent-hover: #74B4FF;
+      --accent-text: #12171C;
+      --border: #2E3B46;
+      --ring: #4FA0FF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12171C;
+    --panel: #1B222A;
+    --text: #F2F5F8;
+    --muted: #9FB0BE;
+    --highlight: #FFE600;
+    --highlight-text: #1A1A1A;
+    --accent: #4FA0FF;
+    --accent-hover: #74B4FF;
+    --accent-text: #12171C;
+    --border: #2E3B46;
+    --ring: #4FA0FF;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "OpenDyslexic", "Comic Sans MS", Verdana, Arial, sans-serif;
+    padding: 36px 20px 60px;
+    max-width: 760px;
+    margin-inline: auto;
+  }
+  .masthead {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  .masthead .mark {
+    width: 48px;
+    height: 48px;
+    flex: none;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--accent-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+  h1 { font-size: 1.9rem; margin: 0; letter-spacing: -0.01em; font-weight: 800; }
+  p.sub { color: var(--muted); margin: 10px 0 28px; font-size: 1.1rem; line-height: 1.6; }
+  .card {
+    background: var(--panel);
+    border: 3px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 0 var(--border);
+  }
+  .card + .card { margin-top: 22px; }
+  .examples {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .example-btn {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 3px solid var(--accent);
+    background: var(--bg);
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .example-btn:hover { background: var(--accent); color: var(--accent-text); }
+  .example-btn.active { background: var(--accent); color: var(--accent-text); }
+  textarea {
+    width: 100%;
+    min-height: 130px;
+    font-size: 1.2rem;
+    line-height: 1.8;
+    padding: 16px;
+    border-radius: 12px;
+    border: 3px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+  textarea:focus-visible, button:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 800;
+    padding: 14px 24px;
+    border-radius: 12px;
+    border: 3px solid transparent;
+    background: var(--accent);
+    color: var(--accent-text);
+    cursor: pointer;
+    transition: background 0.12s ease, transform 0.05s ease;
+  }
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.secondary {
+    background: var(--bg);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  button.secondary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+  #output {
+    font-size: 1.5rem;
+    line-height: 2.2;
+    padding: 22px;
+    min-height: 110px;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+  }
+  .word {
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: background 0.08s ease;
+  }
+  .word.active {
+    background: var(--highlight);
+    color: var(--highlight-text);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--highlight) 55%, var(--accent) 20%);
+  }
+  .hint {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: 24px;
+    line-height: 1.6;
+    border-top: 3px solid var(--border);
+    padding-top: 18px;
+  }
+  .hint code {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="mark">Aa</div>
+  <h1>Word Highlight</h1>
+</div>
+<p class="sub">Type or paste text, hit Read Aloud, and each word highlights as it's spoken.</p>
+
+<div class="card">
+  <div class="examples" id="examples"></div>
+
+  <textarea id="inputText">The quick brown fox jumps over the lazy dog.</textarea>
+
+  <div class="controls">
+    <button id="playBtn">▶ Read Aloud</button>
+    <button id="pauseBtn" class="secondary" disabled>⏸ Pause</button>
+    <button id="stopBtn" class="secondary" disabled>■ Stop</button>
+  </div>
+</div>
+
+<div class="card">
+  <div id="output" aria-live="polite"></div>
+</div>
+
+
+<script>
+(function () {
+  const inputText = document.getElementById('inputText');
+  const output = document.getElementById('output');
+  const playBtn = document.getElementById('playBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const examplesBar = document.getElementById('examples');
+
+  const EXAMPLES = [
+    {
+      label: 'Pangram',
+      text: 'The quick brown fox jumps over the lazy dog.'
+    },
+    {
+      label: 'Short story',
+      text: 'Maya found an old key in the attic. It did not fit any door in the house, so she wore it on a string around her neck, wondering what it might one day open.'
+    },
+    {
+      label: 'Science fact',
+      text: 'Octopuses have three hearts and blue blood. Two hearts pump blood to the gills, while the third pumps it to the rest of the body.'
+    },
+    {
+      label: 'Instructions',
+      text: 'First, gather your materials. Next, read each step carefully before you begin. Finally, check your work and ask for help if anything is unclear.'
+    }
+  ];
+
+  function buildExamples() {
+    EXAMPLES.forEach((ex, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'example-btn' + (i === 0 ? ' active' : '');
+      btn.textContent = ex.label;
+      btn.addEventListener('click', () => {
+        speechSynthesis.cancel();
+        setButtons({ playing: false, paused: false });
+        inputText.value = ex.text;
+        renderWords(ex.text);
+        [...examplesBar.children].forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+      });
+      examplesBar.appendChild(btn);
+    });
+  }
+
+  let utterance = null;
+  let wordSpans = [];
+  // Maps each character index in the text to the index of the <span> covering it
+  let charToWordIndex = [];
+
+  // Splits text into words (keeping their character offsets) and renders
+  // each as its own <span>, so we can toggle a highlight class on the
+  // exact word currently being spoken.
+  function renderWords(text) {
+    output.innerHTML = '';
+    wordSpans = [];
+    charToWordIndex = new Array(text.length).fill(-1);
+
+    const regex = /\S+/g; // any run of non-whitespace = one "word"
+    let match;
+    let wordIndex = 0;
+
+    while ((match = regex.exec(text)) !== null) {
+      const span = document.createElement('span');
+      span.className = 'word';
+      span.textContent = match[0];
+      span.dataset.start = match.index;
+      span.dataset.end = match.index + match[0].length;
+      output.appendChild(span);
+      output.appendChild(document.createTextNode(' '));
+
+      for (let i = match.index; i < match.index + match[0].length; i++) {
+        charToWordIndex[i] = wordIndex;
+      }
+      wordSpans.push(span);
+      wordIndex++;
+    }
+  }
+
+  function clearHighlight() {
+    wordSpans.forEach(s => s.classList.remove('active'));
+  }
+
+  function highlightAtCharIndex(charIndex) {
+    const idx = charToWordIndex[charIndex];
+    if (idx === undefined || idx === -1) return;
+    clearHighlight();
+    const span = wordSpans[idx];
+    span.classList.add('active');
+    span.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function setButtons({ playing, paused }) {
+    playBtn.disabled = playing && !paused;
+    pauseBtn.disabled = !playing;
+    stopBtn.disabled = !playing;
+    pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+  }
+
+  function speak() {
+    const text = inputText.value.trim();
+    if (!text) return;
+
+    speechSynthesis.cancel(); // clear any previous utterance
+    renderWords(text);
+
+    utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+
+    // This is the key event: fires with charIndex = position in the
+    // text where the current word/sentence boundary starts.
+    utterance.onboundary = function (event) {
+      if (event.name === 'word' || event.charIndex !== undefined) {
+        highlightAtCharIndex(event.charIndex);
+      }
+    };
+
+    utterance.onend = function () {
+      clearHighlight();
+      setButtons({ playing: false, paused: false });
+    };
+
+    utterance.onerror = function () {
+      setButtons({ playing: false, paused: false });
+    };
+
+    speechSynthesis.speak(utterance);
+    setButtons({ playing: true, paused: false });
+  }
+
+  playBtn.addEventListener('click', () => {
+    if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+      setButtons({ playing: true, paused: false });
+    } else {
+      speak();
+    }
+  });
+
+  pauseBtn.addEventListener('click', () => {
+    if (speechSynthesis.speaking && !speechSynthesis.paused) {
+      speechSynthesis.pause();
+      setButtons({ playing: true, paused: true });
+    } else if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+      setButtons({ playing: true, paused: false });
+    }
+  });
+
+  stopBtn.addEventListener('click', () => {
+    speechSynthesis.cancel();
+    clearHighlight();
+    setButtons({ playing: false, paused: false });
+  });
+
+  // Initial render so text is visible (word-spanned) before playback starts
+  buildExamples();
+  renderWords(inputText.value);
+  inputText.addEventListener('input', () => renderWords(inputText.value));
+})();
+</script>
+
+</body>
+</html>
