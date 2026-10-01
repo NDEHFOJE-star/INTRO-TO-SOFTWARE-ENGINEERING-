@@ -106,6 +106,13 @@ body {
     line-height: 1.8;
     color: #222;
     margin: 0;
+    transition: all 0.15s ease;
+}
+
+/* Word highlighting during read-aloud */
+#readingText .word.highlight {
+    background-color: #ffe066;
+    border-radius: 3px;
 }
 
 .settings-placeholder {
@@ -146,7 +153,7 @@ body {
         max-width: 600px;
     }
 
-    .book-list {
+    .passage-list {
         grid-template-columns: 1fr 1fr 1fr;
     }
 }
@@ -157,11 +164,11 @@ body {
         max-width: 900px;
     }
 
-    .book-list {
+    .passage-list {
         grid-template-columns: 1fr 1fr 1fr 1fr;
     }
 
-    #readingtext {
+    #readingText {
         font-size: 22px;
     }
 }
@@ -198,42 +205,6 @@ body {
 
 .accessibility-settings input[type="range"] {
     margin: 10px;
-}
-
-#readingText {
-    transition: all 0.15s ease;
-}
-
-.high-contrast {
-    background-color: #000 !important;
-    color: #fff !important;
-}
-/* ==============================
-   STYLE CONTROLS
-   ============================== */
-
-.accessibility-settings {
-    margin-top: 20px;
-    padding: 18px;
-    background: #f5f7fa;
-    border: 1px solid #c9d6e3;
-    border-radius: 12px;
-}
-
-.accessibility-settings h3 {
-    margin-top: 20px;
-}
-
-.accessibility-settings select,
-.accessibility-settings button {
-    padding: 10px 14px;
-    margin: 5px;
-    border-radius: 8px;
-    border: 1px solid #c9d6e3;
-}
-
-.accessibility-settings input[type="range"] {
-    margin: 10px;
     width: 140px;
 }
 
@@ -241,4 +212,9 @@ body {
     display: inline-block;
     min-width: 40px;
     font-weight: bold;
+}
+
+.high-contrast {
+    background-color: #000 !important;
+    color: #fff !important;
 }

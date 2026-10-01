@@ -17,7 +17,7 @@ function showScreen(screenId) {
 
 // ===============================
 // PERSON 3 - TEXT TO SPEECH (no backend, uses the browser's built-in voice)
-// Now with: pause/resume from the exact word + automatic translation
+// Now with: pause/resume from the exact word + automatic translation + word highlighting
 // ===============================
 const synth = window.speechSynthesis;
 const playPauseBtn = document.getElementById("playPauseBtn");
@@ -324,6 +324,87 @@ async function showTextForCurrentVoice() {
   return originalText;
 }
 
+// ---------- WORD HIGHLIGHTING ----------
+// Wraps every word of the displayed text in its own <span>, and remembers
+// where each word starts, so we can light up the exact word being spoken.
+let wordSpans = [];     // the actual <span> elements, in order
+let wordOffsets = [];   // {start, end} character position of each word within the full text
+let sentenceStarts = [];// character position where each sentence begins within the full text
+let currentHighlighted = null; // the span currently lit up, so we can un-highlight it next
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Rebuilds readingText's HTML so every word is wrapped in <span class="word">,
+// and records each word's start/end character position for later lookup.
+function renderWordSpans(text) {
+  let html = "";
+  const offsets = [];
+  const regex = /\S+/g; // \S+ matches one "word" (any run of non-space characters)
+  let match;
+  let lastIndex = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    html += escapeHtml(text.slice(lastIndex, match.index)); // the space/punctuation before this word
+    const start = match.index;
+    const end = start + match[0].length;
+    html += '<span class="word" data-start="' + start + '">' + escapeHtml(match[0]) + "</span>";
+    offsets.push({ start: start, end: end });
+    lastIndex = end;
+  }
+  html += escapeHtml(text.slice(lastIndex)); // any trailing space after the last word
+
+  readingText.innerHTML = html;
+  wordSpans = Array.from(readingText.querySelectorAll(".word"));
+  wordOffsets = offsets;
+  currentHighlighted = null;
+}
+
+// Works out where each sentence starts within the full text,
+// so a boundary event inside one sentence can be converted to an absolute position.
+function getSentenceStarts(text, sentenceList) {
+  const starts = [];
+  let cursor = 0;
+  sentenceList.forEach(function (s) {
+    const idx = text.indexOf(s, cursor);
+    const start = idx === -1 ? cursor : idx;
+    starts.push(start);
+    cursor = start + s.length;
+  });
+  return starts;
+}
+
+// Highlights the word containing this absolute character position, removing
+// the highlight from whichever word was lit up before.
+function highlightWordAt(absolutePosition) {
+  let target = null;
+  for (let i = 0; i < wordOffsets.length; i++) {
+    if (wordOffsets[i].start <= absolutePosition) {
+      target = wordSpans[i];
+    } else {
+      break;
+    }
+  }
+  if (currentHighlighted && currentHighlighted !== target) {
+    currentHighlighted.classList.remove("highlight");
+  }
+  if (target) {
+    target.classList.add("highlight");
+    currentHighlighted = target;
+  }
+}
+
+function clearHighlight() {
+  if (currentHighlighted) {
+    currentHighlighted.classList.remove("highlight");
+    currentHighlighted = null;
+  }
+}
+
 // ---------- READING ALOUD ----------
 // The text is read one sentence at a time, so Pause can continue
 // from the word where it stopped (browser pause/resume is unreliable).
@@ -350,6 +431,7 @@ function finishReading() {
   currentIndex = 0;
   wordOffset = 0;
   currentUtterance = null;
+  clearHighlight();
   playPauseBtn.textContent = "▶";
 }
 
@@ -386,12 +468,14 @@ function speakCurrentSentence(myRun) {
   const chosen = getSelectedVoice();
   if (chosen) utterance.voice = chosen;
 
-  // Track the word being spoken, so Pause knows exactly where to continue.
+  // Track the word being spoken, so Pause knows exactly where to continue,
+  // and highlight that same word on screen.
   // (Voices that don't send word events fall back to the start of the sentence part.)
   utterance.addEventListener("boundary", function (e) {
     if (myRun !== runId) return;
     if (e.name && e.name !== "word") return;
     wordOffset = startOffset + e.charIndex;
+    highlightWordAt(sentenceStarts[currentIndex] + wordOffset);
   });
 
   utterance.addEventListener("end", function () {
@@ -434,7 +518,9 @@ playPauseBtn.addEventListener("click", async function () {
     if (text === null) { finishReading(); return; }
 
     isTranslating = false;
+    renderWordSpans(text);                 // wrap every word in a <span> for highlighting
     sentences = splitIntoSentences(text);
+    sentenceStarts = getSentenceStarts(text, sentences);
     currentIndex = 0;
     wordOffset = 0;
     isPlaying = true;
@@ -477,75 +563,4 @@ voiceControl.addEventListener("change", async function () {
   } else {
     applyNewSetting();
   }
-});
-// ==============================
-// STYLE CONTROLS
-// ==============================
-
-var letterSpacing = document.getElementById('letterSpacing');
-var letterSpacingValue = document.getElementById('letterSpacingValue');
-
-var wordSpacing = document.getElementById('wordSpacing');
-var wordSpacingValue = document.getElementById('wordSpacingValue');
-
-var lineSpacing = document.getElementById('lineSpacing');
-var lineSpacingValue = document.getElementById('lineSpacingValue');
-
-var backgroundColor = document.getElementById('backgroundColor');
-var contrastMode = document.getElementById('contrastMode');
-
-
-// Letter spacing
-letterSpacing.addEventListener('input', function() {
-
-  readingText.style.letterSpacing = this.value + 'px';
-
-  letterSpacingValue.textContent = this.value + 'px';
-
-});
-
-
-// Word spacing
-wordSpacing.addEventListener('input', function() {
-
-  readingText.style.wordSpacing = this.value + 'px';
-
-  wordSpacingValue.textContent = this.value + 'px';
-
-});
-
-
-// Line spacing
-lineSpacing.addEventListener('input', function() {
-
-  readingText.style.lineHeight = this.value;
-
-  lineSpacingValue.textContent = this.value;
-
-});
-
-
-// Background colour
-backgroundColor.addEventListener('change', function() {
-
-  readingText.style.backgroundColor = this.value;
-
-});
-
-
-// High contrast
-contrastMode.addEventListener('change', function() {
-
-  if (this.value === 'high') {
-
-    readingText.style.backgroundColor = '#000000';
-    readingText.style.color = '#ffffff';
-
-  } else {
-
-    readingText.style.backgroundColor = '';
-    readingText.style.color = '';
-
-  }
-
 });
