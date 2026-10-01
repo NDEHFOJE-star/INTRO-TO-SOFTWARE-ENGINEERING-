@@ -110,6 +110,12 @@ body {
     transition: all 0.15s ease;
 }
 
+/* Word highlighting during read-aloud */
+#readingText .word.highlight {
+    background-color: #ffe066;
+    border-radius: 3px;
+}
+
 .settings-placeholder {
     border: 1px dashed #bbb;
     border-radius: 8px;
@@ -200,6 +206,13 @@ body {
 
 .accessibility-settings input[type="range"] {
     margin: 10px;
+    width: 140px;
+}
+
+.accessibility-settings span {
+    display: inline-block;
+    min-width: 40px;
+    font-weight: bold;
 }
 
 .high-contrast {
