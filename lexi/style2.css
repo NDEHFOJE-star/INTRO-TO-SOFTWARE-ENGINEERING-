@@ -162,6 +162,9 @@ body {
     }
     /* Word Highlighting */
 
+.reading-word {
+    transition: background-color 0.1s ease;
+}    
 .word-highlight {
     background-color: yellow;
     color: black;
@@ -169,7 +172,7 @@ body {
     padding: 1px 2px;
 }
 
-    #readingtext {
+    #readingText {
         font-size: 22px;
     }
 }
