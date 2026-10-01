@@ -478,3 +478,74 @@ voiceControl.addEventListener("change", async function () {
     applyNewSetting();
   }
 });
+// ==============================
+// STYLE CONTROLS
+// ==============================
+
+var letterSpacing = document.getElementById('letterSpacing');
+var letterSpacingValue = document.getElementById('letterSpacingValue');
+
+var wordSpacing = document.getElementById('wordSpacing');
+var wordSpacingValue = document.getElementById('wordSpacingValue');
+
+var lineSpacing = document.getElementById('lineSpacing');
+var lineSpacingValue = document.getElementById('lineSpacingValue');
+
+var backgroundColor = document.getElementById('backgroundColor');
+var contrastMode = document.getElementById('contrastMode');
+
+
+// Letter spacing
+letterSpacing.addEventListener('input', function() {
+
+  readingText.style.letterSpacing = this.value + 'px';
+
+  letterSpacingValue.textContent = this.value + 'px';
+
+});
+
+
+// Word spacing
+wordSpacing.addEventListener('input', function() {
+
+  readingText.style.wordSpacing = this.value + 'px';
+
+  wordSpacingValue.textContent = this.value + 'px';
+
+});
+
+
+// Line spacing
+lineSpacing.addEventListener('input', function() {
+
+  readingText.style.lineHeight = this.value;
+
+  lineSpacingValue.textContent = this.value;
+
+});
+
+
+// Background colour
+backgroundColor.addEventListener('change', function() {
+
+  readingText.style.backgroundColor = this.value;
+
+});
+
+
+// High contrast
+contrastMode.addEventListener('change', function() {
+
+  if (this.value === 'high') {
+
+    readingText.style.backgroundColor = '#000000';
+    readingText.style.color = '#ffffff';
+
+  } else {
+
+    readingText.style.backgroundColor = '';
+    readingText.style.color = '';
+
+  }
+
+});
