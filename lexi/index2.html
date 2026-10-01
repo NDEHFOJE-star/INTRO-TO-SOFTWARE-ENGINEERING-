@@ -7,7 +7,67 @@
   <title>Lexi - Person 1 (Frontend Foundation + UI/UX)</title>
   <link rel="stylesheet" href="style2.css">
 </head>
+<section id="text-input-section">
+  <label for="textInput">Enter or paste text:</label>
+  <textarea id="textInput" rows="6" placeholder="Type or paste text here..."></textarea>
+  <div class="char-count"><span id="charCount">0</span> characters</div>
+  <button id="clearTextBtn">Clear</button>
+  <button id="processTextBtn">Process Text</button>
+</section>
 
+<section id="file-upload-section">
+  <div id="dropZone">
+    <p>Drag & drop a file here, or</p>
+    <label>
+      Browse Files
+      <input type="file" id="fileInput" hidden accept=".txt,.pdf,.doc,.docx,image/*" />
+    </label>
+    <p>Accepted: .txt, .pdf, .docx, images</p>
+  </div>
+  <div id="filePreview" class="hidden">
+    <span id="fileName"></span>
+    <span id="fileSize"></span>
+    <button id="removeFileBtn">Remove</button>
+  </div>
+  <button id="processFileBtn" disabled>Extract & Process</button>
+</section>
+
+<section id="ocr-section">
+  <label>
+    Choose Photo
+    <input type="file" id="imageInput" hidden accept="image/*" />
+  </label>
+  <button id="cameraBtn">Use Camera</button>
+  <video id="cameraStream" class="hidden" autoplay playsinline></video>
+  <button id="captureBtn" class="hidden">Capture</button>
+  <div id="imagePreviewWrap" class="hidden">
+    <img id="imagePreview" alt="Selected" />
+  </div>
+  <button id="runOcrBtn" disabled>Run OCR</button>
+  <div id="ocrProgress" class="hidden">
+    <div class="progress-bar"><div id="progressFill"></div></div>
+    <p id="progressText"></p>
+  </div>
+</section>
+
+<section id="outputSection" class="hidden">
+  <h2>Processed Text</h2>
+  <textarea id="processedOutput" rows="8" readonly></textarea>
+  <button id="copyBtn">Copy</button>
+  <button id="sendToReaderBtn">Send to Reading Engine</button>
+</section>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script src="textCleaner.js"></script>
+<script src="textInput.js"></script>
+<script src="fileUpload.js"></script>
+<script src="ocr.js"></script>
+<script src="app.js"></script>
 <body>
 
   <div class="phone">
