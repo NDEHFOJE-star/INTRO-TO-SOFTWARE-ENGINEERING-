@@ -21,44 +21,52 @@
       <h2>Your Passages</h2>
       <!-- Placeholder content only. Person 2 handles real text/files/OCR. -->
       <div class="passage-list">
-        <div class="passage" onclick="showScreen('reading')">The Otter Who Lost the Moon</div>
-        <div class="passage" onclick="showScreen('reading')">Small Stones, Big Rivers</div>
-        <div class="passage" onclick="showScreen('reading')">Letters to a Cartographer</div>
-        <div class="passage" onclick="showScreen('reading')">The Quiet Engine</div>
+        <div class="passage" onclick="showScreen('reading')">
+          The Otter Who Lost the Moon
+        </div>
+        <div class="passage" onclick="showScreen('reading')">
+          Small Stones, Big Rivers
+        </div>
+        <div class="passage" onclick="showScreen('reading')">
+          Letters to a Cartographer
+        </div>
+        <div class="passage" onclick="showScreen('reading')">
+          The Quiet Engine
+        </div>
       </div>
     </div>
     <!-- READING SCREEN -->
-    <!-- Person 3: text-to-speech controls (play, stop, speed, voice).
-         Person 4 wires up real highlighting. -->
+    <!-- Person 3: text-to-speech controls -->
     <div class="screen" id="reading">
-
       <div class="reading-controls">
-
-        <!-- Row 1: Back, Play/Pause, Stop -->
-          <button class="btn" onclick="showScreen('home')">Back</button>
-          <button class="icon-btn" id="playPauseBtn">▶</button>
-          <button class="icon-btn" id="stopBtn">⏹</button>
-        </div>
-
-        <!-- Row 2: Reading speed and Voice -->
-          <div class="control-group">
-            <label for="speedControl">Reading speed</label>
-            <select id="speedControl">
-              <option value="0.75">Slow</option>
-              <option value="1" selected>Normal</option>
-              <option value="1.25">Fast</option>
-            </select>
-          </div>
-
-          <div class="control-group">
-            <label for="voiceControl">Voice</label>
-            <select id="voiceControl">
-              <option value="en-US-AriaNeural" selected>Aria</option>
-              <option value="en-US-GuyNeural">Guy</option>
-            </select>
-          </div>
-        </div>
-
+        <button class="btn" onclick="showScreen('home')">
+          Back
+        </button>
+        <button class="icon-btn" id="playPauseBtn">
+          ▶
+        </button>
+        <button class="icon-btn" id="stopBtn">
+          ⏹
+        </button>
+        <label for="speedControl">
+          Reading speed
+        </label>
+        <select id="speedControl">
+          <option value="0.75">Slow</option>
+          <option value="1" selected>Normal</option>
+          <option value="1.25">Fast</option>
+        </select>
+        <label for="voiceControl">
+          Voice
+        </label>
+        <select id="voiceControl">
+          <option value="en-US-AriaNeural" selected>
+            Aria
+          </option>
+          <option value="en-US-GuyNeural">
+            Guy
+          </option>
+        </select>
       </div>
       <h2>The Otter Who Lost the Moon</h2>
       <div class="reading-box">
@@ -70,7 +78,7 @@
       </div>
     </div>
     <!-- SETTINGS SCREEN -->
-    <!-- Person 4: structure only. Accessibility functionality will be added later. -->
+    <!-- Person 4: structure only -->
     <div class="screen" id="settings">
       <h2>Settings</h2>
       <div class="settings-placeholder">
@@ -79,9 +87,15 @@
     </div>
     <!-- BOTTOM NAV -->
     <div class="nav">
-      <button class="active" onclick="showScreen('home')">Home</button>
-      <button onclick="showScreen('reading')">Reading</button>
-      <button onclick="showScreen('settings')">Settings</button>
+      <button class="active" onclick="showScreen('home')">
+        Home
+      </button>
+      <button onclick="showScreen('reading')">
+        Reading
+      </button>
+      <button onclick="showScreen('settings')">
+        Settings
+      </button>
     </div>
   </div>
   <script src="script2.js"></script>
