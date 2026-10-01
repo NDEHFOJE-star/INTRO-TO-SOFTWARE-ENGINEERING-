@@ -160,6 +160,14 @@ body {
     .book-list {
         grid-template-columns: 1fr 1fr 1fr 1fr;
     }
+    /* Word Highlighting */
+
+.word-highlight {
+    background-color: yellow;
+    color: black;
+    border-radius: 3px;
+    padding: 1px 2px;
+}
 
     #readingtext {
         font-size: 22px;
