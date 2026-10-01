@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lexi - Person 1 (Frontend Foundation + UI/UX)</title>
+  <title>Lexi - Reading Helper</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -30,8 +30,8 @@
       <div class="reading-controls">
         <button class="btn" onclick="showScreen('home')">Back</button>
         <button class="icon-btn" id="addPassageBtn" title="Add a passage">+</button>
-        <button class="icon-btn" id="playPauseBtn">▶</button>
-        <button class="icon-btn" id="stopBtn">⏹</button>
+        <button class="icon-btn" id="playPauseBtn" aria-label="Play or pause reading">▶</button>
+        <button class="icon-btn" id="stopBtn" aria-label="Stop reading">⏹</button>
         <label for="speedControl">Reading speed</label>
         <select id="speedControl">
           <option value="0.75">Slow</option>
@@ -40,8 +40,7 @@
         </select>
         <label for="voiceControl">Voice</label>
         <select id="voiceControl">
-          <option value="en-US-AriaNeural" selected>Aria</option>
-          <option value="en-US-GuyNeural">Guy</option>
+          <option value="" selected>Browser default</option>
         </select>
       </div>
 

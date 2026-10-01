@@ -20,6 +20,7 @@ function showScreen(screenId) {
 // Now with: pause/resume from the exact word + automatic translation + word highlighting
 // ===============================
 const synth = window.speechSynthesis;
+const speechSupported = Boolean(synth && window.SpeechSynthesisUtterance);
 const playPauseBtn = document.getElementById("playPauseBtn");
 const stopBtn = document.getElementById("stopBtn");
 const speedControl = document.getElementById("speedControl");
@@ -31,6 +32,7 @@ const SOURCE_LANG = "en"; // the language your passages are written in
 // Fill the voice dropdown: English (Aria, Guy) and French (Denise, Henri).
 // If those natural voices aren't on this device, it uses the first two available.
 function loadVoices() {
+  if (!speechSupported) return;
   const allVoices = synth.getVoices();
   if (allVoices.length === 0) return;
 
@@ -58,6 +60,7 @@ function loadVoices() {
   });
 
   const previousChoice = voiceControl.value;
+  if (chosenVoices.length === 0) chosenVoices = allVoices.slice(0, 2);
 
   voiceControl.innerHTML = "";
   chosenVoices.forEach(function (v) {
@@ -66,16 +69,19 @@ function loadVoices() {
       .replace(/\s*-.*$/, "")
       .replace(/\s*\(.*\)/, "")
       .replace(/\s*Online\s*/, "");
-    const language = languages[v.lang.slice(0, 2)].label;
+    const language = languages[v.lang.slice(0, 2)]?.label || v.lang;
     voiceControl.add(new Option(shortName + " (" + language + ")", v.name));
   });
 
-  if (previousChoice) voiceControl.value = previousChoice;
+  if (chosenVoices.some(voice => voice.name === previousChoice)) {
+    voiceControl.value = previousChoice;
+  }
 }
 loadVoices();
-synth.addEventListener("voiceschanged", loadVoices);
+if (speechSupported) synth.addEventListener("voiceschanged", loadVoices);
 
 function getSelectedVoice() {
+  if (!speechSupported) return null;
   return synth.getVoices().find(function (v) {
     return v.name === voiceControl.value;
   }) || null;
@@ -103,6 +109,13 @@ statusEl.style.minHeight = "1.2em";
 readingText.parentNode.insertBefore(statusEl, readingText);
 function setStatus(message) {
   statusEl.textContent = message;
+}
+
+if (!speechSupported) {
+  playPauseBtn.disabled = true;
+  stopBtn.disabled = true;
+  voiceControl.disabled = true;
+  setStatus("Read-aloud isn't supported in this browser. You can still add and read passages, or use a browser with speech support.");
 }
 
 function decodeEntities(s) {
@@ -404,7 +417,7 @@ function finishReading() {
 
 function resetAudio() {
   runId++;
-  synth.cancel();
+  if (speechSupported) synth.cancel();
   finishReading();
 }
 
@@ -464,6 +477,7 @@ function resumeFromCurrentSentence() {
 }
 
 playPauseBtn.addEventListener("click", async function () {
+  if (!speechSupported) return;
   if (isTranslating) return;
 
   if (!isPlaying) {
