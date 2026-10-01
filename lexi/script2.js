@@ -564,3 +564,425 @@ voiceControl.addEventListener("change", async function () {
     applyNewSetting();
   }
 });
+});
+const TextCleaner = (() => {
+  function clean(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    let text = raw;
+    text = text.normalize('NFKC');
+    text = text
+      .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+      .replace(/[\u2013\u2014]/g, '-')
+      .replace(/\u2026/g, '...');
+    text = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
+    text = text.replace(/-\s*\n\s*/g, '');
+    text = text.replace(/[ \t]+/g, ' ');
+    text = text.replace(/\n{3,}/g, '\n\n');
+    text = text.split('\n').map((line) => line.trim()).join('\n');
+    text = text.replace(/\bl\b/g, 'I').replace(/[“”]/g, '"').replace(/\s+([.,!?;:])/g, '$1');
+    return text.trim();
+  }
+
+  function toSentences(text) {
+    if (!text) return [];
+    return text
+      .replace(/([.!?])\s+/g, '$1|')
+      .split('|')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+
+  return { clean, toSentences };
+})();
+const FileUploadModule = (() => {
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const filePreview = document.getElementById('filePreview');
+  const fileName = document.getElementById('fileName');
+  const fileSize = document.getElementById('fileSize');
+  const removeBtn = document.getElementById('removeFileBtn');
+  const processBtn = document.getElementById('processFileBtn');
+
+  if (!dropZone || !fileInput) {
+    console.warn('[FileUploadModule] elements not found — skipping init');
+    return { init: () => {} };
+  }
+
+  let selectedFile = null;
+
+  const ACCEPTED = {
+    'text/plain': 'txt',
+    'application/pdf': 'pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/msword': 'doc',
+  };
+  const MAX_SIZE_MB = 20;
+
+  function validate(file) {
+    if (!file) return 'No file selected.';
+    const isImage = file.type.startsWith('image/');
+    const isAcceptedDoc = ACCEPTED[file.type];
+    if (!isImage && !isAcceptedDoc) return `Unsupported file type: ${file.type || 'unknown'}`;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) return `File too large. Max ${MAX_SIZE_MB}MB.`;
+    return null;
+  }
+
+  function showPreview(file) {
+    selectedFile = file;
+    if (fileName) fileName.textContent = file.name;
+    if (fileSize) fileSize.textContent = formatSize(file.size);
+    if (filePreview) filePreview.classList.remove('hidden');
+    if (processBtn) processBtn.disabled = false;
+  }
+
+  function hidePreview() {
+    selectedFile = null;
+    if (filePreview) filePreview.classList.add('hidden');
+    if (processBtn) processBtn.disabled = true;
+    if (fileInput) fileInput.value = '';
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  async function extractText(file) {
+    const type = file.type;
+    if (type === 'text/plain') return await readTxt(file);
+    if (type === 'application/pdf') return await readPdf(file);
+    if (type.includes('word')) return await readDocx(file);
+    if (type.startsWith('image/')) return await OcrModule.runOnFile(file);
+    throw new Error('Unsupported file type for extraction.');
+  }
+
+  function readTxt(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Failed to read text file.'));
+      reader.readAsText(file);
+    });
+  }
+
+  async function readPdf(file) {
+    const buffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items.map((item) => item.str).join(' ');
+      fullText += pageText + '\n\n';
+    }
+    return fullText;
+  }
+
+  async function readDocx(file) {
+    const buffer = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buffer);
+    const xml = await zip.file('word/document.xml').async('string');
+    return xml
+      .replace(/<w:p[^>]*>/g, '\n')
+      .replace(/<w:tab[^>]*\/>/g, '\t')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'");
+  }
+
+  function init(onProcess) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      const err = validate(file);
+      if (err) { App.showToast(err, 'error'); hidePreview(); return; }
+      showPreview(file);
+    });
+
+    ['dragenter', 'dragover'].forEach((ev) => {
+      dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach((ev) => {
+      dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+    });
+    dropZone.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files[0];
+      const err = validate(file);
+      if (err) { App.showToast(err, 'error'); hidePreview(); return; }
+      showPreview(file);
+    });
+
+    if (removeBtn) removeBtn.addEventListener('click', hidePreview);
+
+    if (processBtn) {
+      processBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+        processBtn.disabled = true;
+        processBtn.textContent = '⏳ Extracting...';
+        try {
+          const raw = await extractText(selectedFile);
+          if (!raw || !raw.trim()) throw new Error('No readable text found in file.');
+          onProcess(raw, 'file-upload');
+        } catch (err) {
+          console.error(err);
+          App.showToast(err.message || 'Extraction failed.', 'error');
+        } finally {
+          processBtn.disabled = false;
+          processBtn.textContent = '➡️ Extract & Process';
+        }
+      });
+    }
+  }
+
+  return { init };
+})();
+const OcrModule = (() => {
+  const imageInput = document.getElementById('imageInput');
+  const cameraBtn = document.getElementById('cameraBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const video = document.getElementById('cameraStream');
+  const imagePreview = document.getElementById('imagePreview');
+  const imagePreviewWrap = document.getElementById('imagePreviewWrap');
+  const runOcrBtn = document.getElementById('runOcrBtn');
+  const progressWrap = document.getElementById('ocrProgress');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+
+  let currentImageFile = null;
+  let mediaStream = null;
+
+  function setProgress(pct, msg) {
+    if (!progressWrap) return;
+    progressWrap.classList.remove('hidden');
+    if (progressFill) progressFill.style.width = pct + '%';
+    if (progressText) progressText.textContent = msg;
+  }
+
+  function hideProgress() {
+    setTimeout(() => progressWrap && progressWrap.classList.add('hidden'), 1200);
+  }
+
+  function handleImageFile(file) {
+    if (!file || !file.type.startsWith('image/')) {
+      App.showToast('Please select a valid image.', 'error');
+      return;
+    }
+    currentImageFile = file;
+    const url = URL.createObjectURL(file);
+    if (imagePreview) imagePreview.src = url;
+    if (imagePreviewWrap) imagePreviewWrap.classList.remove('hidden');
+    if (runOcrBtn) runOcrBtn.disabled = false;
+  }
+
+  async function startCamera() {
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      if (video) {
+        video.srcObject = mediaStream;
+        video.classList.remove('hidden');
+      }
+      if (captureBtn) captureBtn.classList.remove('hidden');
+    } catch (err) {
+      console.error(err);
+      App.showToast('Camera access denied or unavailable.', 'error');
+    }
+  }
+
+  function capturePhoto() {
+    if (!mediaStream || !video) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    canvas.toBlob((blob) => {
+      const file = new File([blob], 'capture.png', { type: 'image/png' });
+      handleImageFile(file);
+      stopCamera();
+    }, 'image/png');
+  }
+
+  function stopCamera() {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((t) => t.stop());
+      mediaStream = null;
+    }
+    if (video) video.classList.add('hidden');
+    if (captureBtn) captureBtn.classList.add('hidden');
+  }
+
+  async function runOcr(file) {
+    setProgress(0, 'Loading OCR engine...');
+    const { data } = await Tesseract.recognize(file, 'eng', {
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          const pct = Math.round((m.progress || 0) * 100);
+          setProgress(pct, `Recognizing text... ${pct}%`);
+        } else {
+          setProgress(0, m.status);
+        }
+      },
+    });
+    setProgress(100, 'Done!');
+    hideProgress();
+    return data.text;
+  }
+
+  async function runOnFile(file) {
+    return await runOcr(file);
+  }
+
+  function init(onProcess) {
+    if (imageInput) imageInput.addEventListener('change', (e) => handleImageFile(e.target.files[0]));
+    if (cameraBtn) cameraBtn.addEventListener('click', startCamera);
+    if (captureBtn) captureBtn.addEventListener('click', capturePhoto);
+
+    if (runOcrBtn) {
+      runOcrBtn.addEventListener('click', async () => {
+        if (!currentImageFile) return;
+        runOcrBtn.disabled = true;
+        try {
+          const raw = await runOcr(currentImageFile);
+          if (!raw || !raw.trim()) throw new Error('No text detected in image.');
+          onProcess(raw, 'ocr');
+        } catch (err) {
+          console.error(err);
+          App.showToast(err.message || 'OCR failed.', 'error');
+        } finally {
+          runOcrBtn.disabled = false;
+        }
+      });
+    }
+  }
+
+  return { init, runOnFile };
+})();
+const App = (() => {
+  const toastEl = document.getElementById('toast');
+  let toastTimer = null;
+
+  function showToast(message, type = 'info') {
+    if (!toastEl) { console.log(`[toast] ${message}`); return; }
+    toastEl.textContent = message;
+    toastEl.className = `toast ${type}`;
+    toastEl.classList.remove('hidden');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.add('hidden'), 3000);
+  }
+
+  const outputSection = document.getElementById('outputSection');
+  const processedOutput = document.getElementById('processedOutput');
+  const copyBtn = document.getElementById('copyBtn');
+  const sendBtn = document.getElementById('sendToReaderBtn');
+
+  let lastProcessed = '';
+
+  function handleProcessedText(raw, source) {
+    const cleaned = TextCleaner.clean(raw);
+    if (!cleaned) {
+      showToast('Text was empty after cleaning.', 'error');
+      return;
+    }
+    lastProcessed = cleaned;
+    if (processedOutput) processedOutput.value = cleaned;
+    if (outputSection) {
+      outputSection.classList.remove('hidden');
+      outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
+    showToast(`Processed ${wordCount} words from ${source}.`, 'success');
+  }
+
+  function sendToReadingEngine() {
+    if (!lastProcessed) return;
+    const payload = {
+      text: lastProcessed,
+      sentences: TextCleaner.toSentences(lastProcessed),
+      wordCount: lastProcessed.split(/\s+/).filter(Boolean).length,
+      timestamp: new Date().toISOString(),
+    };
+    window.dispatchEvent(new CustomEvent('reader:loadText', { detail: payload }));
+    console.log('[ReadingEngine] Received payload:', payload);
+    showToast('Sent to Reading Engine!', 'success');
+  }
+
+  function init() {
+    TextInputModule.init(handleProcessedText);
+    FileUploadModule.init(handleProcessedText);
+    OcrModule.init(handleProcessedText);
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(lastProcessed);
+          showToast('Copied to clipboard!', 'success');
+        } catch {
+          showToast('Copy failed.', 'error');
+        }
+      });
+    }
+
+    if (sendBtn) sendBtn.addEventListener('click', sendToReadingEngine);
+
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  return { showToast };
+})();
+
+const TextInputModule = (() => {
+  const textarea = document.getElementById('textInput');
+  const charCount = document.getElementById('charCount');
+  const clearBtn = document.getElementById('clearTextBtn');
+  const processBtn = document.getElementById('processTextBtn');
+
+  if (!textarea) {
+    console.warn('[TextInputModule] textarea not found');
+    return { init: () => {}, getText: () => '', clear: () => {} };
+  }
+
+  function updateCharCount() {
+    if (charCount) charCount.textContent = textarea.value.length;
+  }
+
+  function clear() {
+    textarea.value = '';
+    updateCharCount();
+    textarea.focus();
+  }
+
+  function getText() {
+    return textarea.value;
+  }
+
+  function init(onProcess) {
+    textarea.addEventListener('input', updateCharCount);
+    if (clearBtn) clearBtn.addEventListener('click', clear);
+    if (processBtn) {
+      processBtn.addEventListener('click', () => {
+        const text = getText().trim();
+        if (!text) {
+          App.showToast('Please enter some text first.', 'error');
+          return;
+        }
+        onProcess(text, 'text-input');
+      });
+    }
+    updateCharCount();
+  }
+
+  return { init, getText, clear };
+})();
+});

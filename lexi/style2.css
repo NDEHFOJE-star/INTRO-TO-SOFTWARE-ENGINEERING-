@@ -219,3 +219,151 @@ body {
     background-color: #000 !important;
     color: #fff !important;
 }
+#text-input-section,
+#file-upload-section,
+#ocr-section,
+#outputSection {
+  margin: 16px 0;
+  padding: 16px;
+  background: #fbfdff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+#text-input-section textarea,
+#processedOutput {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+#text-input-section textarea:focus,
+#processedOutput:focus {
+  outline: none;
+  border-color: #4a6cf7;
+  background: white;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 6px 0;
+}
+
+#text-input-section button,
+#file-upload-section button,
+#ocr-section button,
+#outputSection button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #4a6cf7;
+  color: white;
+  margin: 4px 6px 4px 0;
+}
+
+#text-input-section button:hover,
+#file-upload-section button:hover,
+#ocr-section button:hover,
+#outputSection button:hover {
+  background: #3b56c9;
+}
+
+#clearTextBtn,
+#removeFileBtn,
+#copyBtn {
+  background: #6c757d;
+}
+
+#dropZone {
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  padding: 30px 16px;
+  text-align: center;
+  background: #fbfdff;
+}
+
+#dropZone.dragover {
+  border-color: #4a6cf7;
+  background: #eef2ff;
+}
+
+#filePreview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #eef2ff;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+#cameraStream {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+#imagePreview {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+#ocrProgress {
+  margin-top: 12px;
+}
+
+#ocrProgress .progress-bar {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+#progressFill {
+  height: 100%;
+  width: 0%;
+  background: #4a6cf7;
+  transition: width 0.3s;
+}
+
+#progressText {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 8px;
+  text-align: center;
+}
+
+#outputSection h2 {
+  margin-bottom: 12px;
+  color: #28a745;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  z-index: 999;
+}
+
+.toast.success { background: #28a745; }
+.toast.error { background: #dc3545; }
+
+.hidden { display: none !important; }
