@@ -12,89 +12,77 @@ function showScreen(screenId) {
   if (screenId === 'home') navButtons[0].classList.add('active');
   if (screenId === 'reading') navButtons[1].classList.add('active');
   if (screenId === 'settings') navButtons[2].classList.add('active');
-  if (screenId !== 'reading') resetAudio();
+  if (screenId !== 'reading') resetAudio(); // added: stop speech when leaving Reading
 }
+
 // ===============================
-// PERSON 3 - TEXT TO SPEECH
+// PERSON 3 - TEXT TO SPEECH (no backend, uses the browser's built-in voice)
 // ===============================
-const BACKEND_URL = "http://localhost:4000";
+const synth = window.speechSynthesis;
 const playPauseBtn = document.getElementById("playPauseBtn");
-let audio = null;
-   function resetAudio(){
-     if (audio){
-       audio.pause();
-       audio = null;
-     }
-     playPauseBtn.textContent = "▶️"
-// PLAY / PAUSE
-playPauseBtn.addEventListener("click", async function () {
-  const textElement = document.getElementById("readingText");
-  const text = textElement.innerText;
-  if (!audio) {
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/read-aloud`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          text: text,
-          rate: document.getElementById("speedControl").value,
-          voice: document.getElementById("voiceControl").value
-        })
-      });
-      if (!response.ok) {
-        throw new Error("Speech generation failed.");
-      }
-      const data = await response.json();
-      audio = new Audio(
-        `${BACKEND_URL}${data.audio_url}?t=${Date.now()}`
-      );
-      audio.addEventListener("ended", function () {
-        audio = null;
-        playPauseBtn.textContent = "▶️";
-      });
-      await audio.play();
-      playPauseBtn.textContent = "⏸️";
-    } catch (error) {
-      console.error(error);
-      alert("Could not generate speech.");
-    }
-  } else {
-    if (audio.paused) {
-      await audio.play();
-      playPauseBtn.textContent = "⏸️";
-    } else {
-      audio.pause();
-      playPauseBtn.textContent = "▶️";
-    }
-  }
-});
-// STOP
 const stopBtn = document.getElementById("stopBtn");
-stopBtn.addEventListener("click", function () {
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
-    audio = null;
-    playPauseBtn.textContent = "▶️";
-  }
-});
-// READING SPEED
 const speedControl = document.getElementById("speedControl");
-speedControl.addEventListener("change", function () {
-  if (audio) {
-    audio.pause();
-    audio = null;
-    playPauseBtn.textContent = "▶️";
-  }
-});
-// VOICE
 const voiceControl = document.getElementById("voiceControl");
-voiceControl.addEventListener("change", function () {
-  if (audio) {
-    audio.pause();
-    audio = null;
+
+// Fill the voice dropdown with the voices this browser has
+function loadVoices() {
+  let voices = synth.getVoices();
+  if (voices.length === 0) return;
+  const english = voices.filter(function (v) {
+    return v.lang.startsWith("en");
+  });
+  if (english.length > 0) voices = english;
+  voiceControl.innerHTML = "";
+  voices.forEach(function (v) {
+    voiceControl.add(new Option(v.name + " (" + v.lang + ")", v.name));
+  });
+}
+loadVoices();
+synth.addEventListener("voiceschanged", loadVoices);
+
+// Stops the speech and resets the button
+function resetAudio() {
+  synth.cancel();
+  playPauseBtn.textContent = "▶️";
+}
+
+// PLAY / PAUSE
+playPauseBtn.addEventListener("click", function () {
+  if (!synth.speaking) {
+    // Start reading
+    const text = document.getElementById("readingText").innerText;
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    const speed = parseFloat(speedControl.value);
+    utterance.rate = isNaN(speed) ? 1 : speed;
+
+    const chosen = synth.getVoices().find(function (v) {
+      return v.name === voiceControl.value;
+    });
+    if (chosen) utterance.voice = chosen;
+
+    utterance.addEventListener("end", function () {
+      playPauseBtn.textContent = "▶️";
+    });
+    utterance.addEventListener("error", function () {
+      playPauseBtn.textContent = "▶️";
+    });
+
+    synth.speak(utterance);
+    playPauseBtn.textContent = "⏸️";
+  } else if (synth.paused) {
+    synth.resume();
+    playPauseBtn.textContent = "⏸️";
+  } else {
+    synth.pause();
     playPauseBtn.textContent = "▶️";
   }
 });
+
+// STOP
+stopBtn.addEventListener("click", resetAudio);
+
+// READING SPEED and VOICE: stop so the next play uses the new setting
+speedControl.addEventListener("change", resetAudio);
+voiceControl.addEventListener("change", resetAudio);
+voiceControl.addEventListener("change", resetAudio);
