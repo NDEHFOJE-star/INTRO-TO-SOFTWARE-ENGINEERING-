@@ -19,3 +19,49 @@ function showScreen(screenId) {
 // NOTE: the play/pause button is intentionally not wired up.
 // It's a UI component only — Person 3 attaches the real
 // text-to-speech logic (play/pause/resume/stop) to it.
+// ==============================
+// FONT TOGGLE
+// ==============================
+
+var fontSelect = document.getElementById('fontSelect');
+var increaseFont = document.getElementById('increaseFont');
+var decreaseFont = document.getElementById('decreaseFont');
+var fontSizeDisplay = document.getElementById('fontSizeDisplay');
+
+var currentFontSize = 20;
+
+
+// Change reading font
+fontSelect.addEventListener('change', function() {
+
+  readingText.style.fontFamily = this.value;
+
+});
+
+
+// Increase font size
+increaseFont.addEventListener('click', function() {
+
+  if (currentFontSize < 32) {
+    currentFontSize += 2;
+  }
+
+  readingText.style.fontSize = currentFontSize + 'px';
+
+  fontSizeDisplay.textContent = currentFontSize + 'px';
+
+});
+
+
+// Decrease font size
+decreaseFont.addEventListener('click', function() {
+
+  if (currentFontSize > 12) {
+    currentFontSize -= 2;
+  }
+
+  readingText.style.fontSize = currentFontSize + 'px';
+
+  fontSizeDisplay.textContent = currentFontSize + 'px';
+
+});
