@@ -208,3 +208,37 @@ body {
     background-color: #000 !important;
     color: #fff !important;
 }
+/* ==============================
+   STYLE CONTROLS
+   ============================== */
+
+.accessibility-settings {
+    margin-top: 20px;
+    padding: 18px;
+    background: #f5f7fa;
+    border: 1px solid #c9d6e3;
+    border-radius: 12px;
+}
+
+.accessibility-settings h3 {
+    margin-top: 20px;
+}
+
+.accessibility-settings select,
+.accessibility-settings button {
+    padding: 10px 14px;
+    margin: 5px;
+    border-radius: 8px;
+    border: 1px solid #c9d6e3;
+}
+
+.accessibility-settings input[type="range"] {
+    margin: 10px;
+    width: 140px;
+}
+
+.accessibility-settings span {
+    display: inline-block;
+    min-width: 40px;
+    font-weight: bold;
+}
