@@ -28,24 +28,39 @@
       </div>
     </div>
     <!-- READING SCREEN -->
-    <!-- Structure only: the box that holds text + a play/pause UI element.
-       Person 3 wires up real text-to-speech. Person 4 wires up real highlighting. -->
+    <!-- Person 3: text-to-speech controls (play, stop, speed, voice).
+         Person 4 wires up real highlighting. -->
     <div class="screen" id="reading">
+
       <div class="reading-controls">
-        <button class="btn" onclick="showScreen('home')">Back</button>
-        <button class="icon-btn" id="playPauseBtn">▶</button>
-        <button class="icon-btn" id="stopBtn">⏹</button>
-        <label for="speedControl">Reading speed</label>
-        <select id="speedControl">
-          <option value="0.75">Slow</option>
-          <option value="1" selected>Normal</option>
-          <option value="1.25">Fast</option>
-        </select>
-        <label for="voiceControl">Voice</label>
-        <select id="voiceControl">
-          <option value="en-US-AriaNeural" selected>Aria</option>
-          <option value="en-US-GuyNeural">Guy</option>
-        </select>
+
+        <!-- Row 1: Back, Play/Pause, Stop -->
+        <div class="control-row">
+          <button class="btn" onclick="showScreen('home')">Back</button>
+          <button class="icon-btn" id="playPauseBtn">▶</button>
+          <button class="icon-btn" id="stopBtn">⏹</button>
+        </div>
+
+        <!-- Row 2: Reading speed and Voice -->
+        <div class="control-row">
+          <div class="control-group">
+            <label for="speedControl">Reading speed</label>
+            <select id="speedControl">
+              <option value="0.75>Slow</option>
+              <option value="1" selected>Normal</option>
+              <option value="1.25">Fast</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="voiceControl">Voice</label>
+            <select id="voiceControl">
+              <option value="en-US-AriaNeural" selected>Aria</option>
+              <option value="en-US-GuyNeural">Guy</option>
+            </select>
+          </div>
+        </div>
+
       </div>
       <h2>The Otter Who Lost the Moon</h2>
       <div class="reading-box">
@@ -61,7 +76,7 @@
     <div class="screen" id="settings">
       <h2>Settings</h2>
       <div class="settings-placeholder">
-        Accessibility settings will be added by Person 4.
+        Reading and accessibility settings will go here.
       </div>
     </div>
     <!-- BOTTOM NAV -->
