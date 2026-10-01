@@ -53,6 +53,9 @@ function loadVoices() {
     chosenVoices = chosenVoices.concat(picked);
   });
 
+  // Remember the current choice so reloading the voice list doesn't reset it
+  const previousChoice = voiceControl.value;
+
   voiceControl.innerHTML = "";
   chosenVoices.forEach(function (v) {
     // Short, friendly name: "Microsoft Aria Online (Natural) - English (United States)" becomes "Aria"
@@ -64,6 +67,8 @@ function loadVoices() {
     const language = languages[v.lang.slice(0, 2)].label;
     voiceControl.add(new Option(shortName + " (" + language + ")", v.name));
   });
+
+  if (previousChoice) voiceControl.value = previousChoice;
 }
 loadVoices();
 synth.addEventListener("voiceschanged", loadVoices);
@@ -75,6 +80,8 @@ let currentIndex = 0;
 let isPlaying = false;
 let isPaused = false;
 let runId = 0; // changes on every start/pause/stop so old events are ignored
+let wordOffset = 0; // where inside the current sentence to continue from (updated word by word)
+let currentUtterance = null; // FIX: keep a reference so the browser doesn't garbage-collect it mid-speech
 
 function splitIntoSentences(text) {
   const parts = text.match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g) || [text];
@@ -87,6 +94,8 @@ function finishReading() {
   isPlaying = false;
   isPaused = false;
   currentIndex = 0;
+  wordOffset = 0;
+  currentUtterance = null;
   playPauseBtn.textContent = "▶";
 }
 
@@ -104,7 +113,18 @@ function speakCurrentSentence(myRun) {
     return;
   }
 
-  const utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
+  const fullSentence = sentences[currentIndex];
+  const startOffset = wordOffset;
+  if (startOffset >= fullSentence.length) {
+    currentIndex++;
+    wordOffset = 0;
+    speakCurrentSentence(myRun);
+    return;
+  }
+
+  // Only speak the part of the sentence that hasn't been read yet
+  const utterance = new SpeechSynthesisUtterance(fullSentence.slice(startOffset));
+  currentUtterance = utterance;
 
   const speed = parseFloat(speedControl.value);
   utterance.rate = isNaN(speed) ? 1 : speed;
@@ -114,9 +134,18 @@ function speakCurrentSentence(myRun) {
   });
   if (chosen) utterance.voice = chosen;
 
+  // Track the word being spoken, so Pause knows exactly where to continue.
+  // (Voices that don't send word events fall back to the start of the sentence part.)
+  utterance.addEventListener("boundary", function (e) {
+    if (myRun !== runId) return;
+    if (e.name && e.name !== "word") return;
+    wordOffset = startOffset + e.charIndex;
+  });
+
   utterance.addEventListener("end", function () {
     if (myRun !== runId) return;
     currentIndex++;
+    wordOffset = 0;
     speakCurrentSentence(myRun);
   });
   utterance.addEventListener("error", function () {
@@ -127,6 +156,17 @@ function speakCurrentSentence(myRun) {
   synth.speak(utterance);
 }
 
+// Continue from the current word with a short delay
+// (some browsers drop speech that starts right after cancel())
+function resumeFromCurrentSentence() {
+  runId++;
+  const myRun = runId;
+  synth.cancel();
+  setTimeout(function () {
+    speakCurrentSentence(myRun);
+  }, 60);
+}
+
 // PLAY / PAUSE
 playPauseBtn.addEventListener("click", function () {
   if (!isPlaying) {
@@ -134,19 +174,18 @@ playPauseBtn.addEventListener("click", function () {
     const text = document.getElementById("readingText").innerText;
     sentences = splitIntoSentences(text);
     currentIndex = 0;
+    wordOffset = 0;
     isPlaying = true;
     isPaused = false;
-    runId++;
     playPauseBtn.textContent = "❚❚";
-    speakCurrentSentence(runId);
+    resumeFromCurrentSentence();
   } else if (isPaused) {
-    // Continue from the sentence where it stopped
+    // Continue from the word where it stopped
     isPaused = false;
-    runId++;
     playPauseBtn.textContent = "❚❚";
-    speakCurrentSentence(runId);
+    resumeFromCurrentSentence();
   } else {
-    // Pause: stop speaking but remember the sentence
+    // Pause: stop speaking but remember the sentence AND the word (currentIndex, wordOffset)
     isPaused = true;
     runId++;
     synth.cancel();
@@ -157,7 +196,14 @@ playPauseBtn.addEventListener("click", function () {
 // STOP
 stopBtn.addEventListener("click", resetAudio);
 
-// READING SPEED and VOICE: stop so the next play uses the new setting
-speedControl.addEventListener("change", resetAudio);
-voiceControl.addEventListener("change", resetAudio);
-voiceControl.addEventListener("change", resetAudio);
+// READING SPEED and VOICE: keep the position.
+// - Playing: continue from the current word with the new setting.
+// - Paused: the new setting is used when you press play.
+// - Not started: nothing to do.
+function applyNewSetting() {
+  if (isPlaying && !isPaused) {
+    resumeFromCurrentSentence();
+  }
+}
+speedControl.addEventListener("change", applyNewSetting);
+voiceControl.addEventListener("change", applyNewSetting);
