@@ -1,3 +1,4 @@
+// Backend server for Lexi read-aloud(text to speech)
 const express = require("express");
 const cors = require("cors");
 const { EdgeTTS } = require("node-edge-tts");
