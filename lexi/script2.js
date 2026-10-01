@@ -26,7 +26,7 @@ const speedControl = document.getElementById("speedControl");
 const voiceControl = document.getElementById("voiceControl");
 const readingText = document.getElementById("readingText");
 
-const SOURCE_LANG = "en"; // the language your stories are written in
+const SOURCE_LANG = "en"; // the language your passages are written in
 
 // Fill the voice dropdown: English (Aria, Guy) and French (Denise, Henri).
 // If those natural voices aren't on this device, it uses the first two available.
@@ -57,12 +57,10 @@ function loadVoices() {
     chosenVoices = chosenVoices.concat(picked);
   });
 
-  // Remember the current choice so reloading the voice list doesn't reset it
   const previousChoice = voiceControl.value;
 
   voiceControl.innerHTML = "";
   chosenVoices.forEach(function (v) {
-    // Short, friendly name: "Microsoft Aria Online (Natural) - English (United States)" becomes "Aria"
     const shortName = v.name
       .replace(/^(Microsoft|Google)\s*/, "")
       .replace(/\s*-.*$/, "")
@@ -92,13 +90,12 @@ function getSelectedLanguage() {
 // 1) Tries the translator built into newer Edge/Chrome (free, works offline once downloaded)
 // 2) Falls back to the free MyMemory online translator (needs internet)
 // 3) If both fail, the original text is read instead
-const originalHTML = readingText.innerHTML; // keeps your story's original layout
-let originalText = null;                    // plain text of the original story
-let displayedLang = SOURCE_LANG;            // language currently shown on screen
-let viewToken = 0;                          // ignores out-of-date translation results
-const translationCache = {};                // translate each story only once per language
+let originalHTML = readingText.innerHTML; // the current passage's layout; replaced whenever a new passage loads
+let originalText = null;
+let displayedLang = SOURCE_LANG;
+let viewToken = 0;
+const translationCache = {};
 
-// Small message line above the story ("Translating...")
 const statusEl = document.createElement("div");
 statusEl.setAttribute("aria-live", "polite");
 statusEl.style.fontSize = "0.9em";
@@ -132,15 +129,9 @@ const lineSpacingValue = document.getElementById("lineSpacingValue");
 const backgroundColor = document.getElementById("backgroundColor");
 const contrastMode = document.getElementById("contrastMode");
 
-
-/* FONT */
-
 fontSelect.addEventListener("change", function () {
   readingText.style.fontFamily = this.value;
 });
-
-
-/* FONT SIZE */
 
 let currentFontSize = 18;
 
@@ -160,57 +151,34 @@ decreaseFont.addEventListener("click", function () {
   }
 });
 
-
-/* LETTER SPACING */
-
 letterSpacing.addEventListener("input", function () {
   readingText.style.letterSpacing = this.value + "px";
   letterSpacingValue.textContent = this.value + "px";
 });
-
-
-/* WORD SPACING */
 
 wordSpacing.addEventListener("input", function () {
   readingText.style.wordSpacing = this.value + "px";
   wordSpacingValue.textContent = this.value + "px";
 });
 
-
-/* LINE SPACING */
-
 lineSpacing.addEventListener("input", function () {
   readingText.style.lineHeight = this.value;
   lineSpacingValue.textContent = this.value;
 });
-
-
-/* BACKGROUND */
 
 backgroundColor.addEventListener("change", function () {
   readingText.style.backgroundColor = this.value;
   readingText.style.color = "#1a1a1a";
 });
 
-
-/* HIGH CONTRAST */
-
 contrastMode.addEventListener("change", function () {
-
   if (this.value === "high") {
-
     readingText.classList.add("high-contrast");
-
   } else {
-
     readingText.classList.remove("high-contrast");
-
-    readingText.style.backgroundColor =
-      backgroundColor.value;
-
+    readingText.style.backgroundColor = backgroundColor.value;
     readingText.style.color = "#1a1a1a";
   }
-
 });
 
 function chunkText(text, maxLength) {
@@ -268,7 +236,6 @@ async function translateOnline(text, target) {
 async function getTranslation(text, target) {
   const key = target + "|" + text;
   if (translationCache[key]) return translationCache[key];
-
   let result = null;
   try {
     result = await translateWithBrowser(text, target);
@@ -292,12 +259,9 @@ function showOriginal() {
   setStatus("");
 }
 
-// Shows the story in the language of the selected voice and returns the text to read.
-// Returns null if a newer request replaced this one.
 async function showTextForCurrentVoice() {
   const token = ++viewToken;
 
-  // Capture the original text while the original is on screen
   if (originalText === null && displayedLang === SOURCE_LANG) {
     originalText = readingText.innerText;
   }
@@ -324,13 +288,24 @@ async function showTextForCurrentVoice() {
   return originalText;
 }
 
+// ---------- LOADING A PASSAGE INTO THE READER ----------
+// Called whenever the user adds new text (type/upload/OCR) or taps a saved
+// passage on the Home screen. Replaces whatever is currently in the reader.
+function loadPassageIntoReader(text, title) {
+  resetAudio(); // stop anything currently playing
+  const safeText = escapeHtml(text);
+  readingText.innerHTML = safeText;
+  originalHTML = safeText;
+  originalText = text;
+  displayedLang = SOURCE_LANG;
+  document.getElementById("readingTitle").textContent = title || "Your Passage";
+}
+
 // ---------- WORD HIGHLIGHTING ----------
-// Wraps every word of the displayed text in its own <span>, and remembers
-// where each word starts, so we can light up the exact word being spoken.
-let wordSpans = [];     // the actual <span> elements, in order
-let wordOffsets = [];   // {start, end} character position of each word within the full text
-let sentenceStarts = [];// character position where each sentence begins within the full text
-let currentHighlighted = null; // the span currently lit up, so we can un-highlight it next
+let wordSpans = [];
+let wordOffsets = [];
+let sentenceStarts = [];
+let currentHighlighted = null;
 
 function escapeHtml(str) {
   return str
@@ -339,24 +314,22 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;");
 }
 
-// Rebuilds readingText's HTML so every word is wrapped in <span class="word">,
-// and records each word's start/end character position for later lookup.
 function renderWordSpans(text) {
   let html = "";
   const offsets = [];
-  const regex = /\S+/g; // \S+ matches one "word" (any run of non-space characters)
+  const regex = /\S+/g;
   let match;
   let lastIndex = 0;
 
   while ((match = regex.exec(text)) !== null) {
-    html += escapeHtml(text.slice(lastIndex, match.index)); // the space/punctuation before this word
+    html += escapeHtml(text.slice(lastIndex, match.index));
     const start = match.index;
     const end = start + match[0].length;
     html += '<span class="word" data-start="' + start + '">' + escapeHtml(match[0]) + "</span>";
     offsets.push({ start: start, end: end });
     lastIndex = end;
   }
-  html += escapeHtml(text.slice(lastIndex)); // any trailing space after the last word
+  html += escapeHtml(text.slice(lastIndex));
 
   readingText.innerHTML = html;
   wordSpans = Array.from(readingText.querySelectorAll(".word"));
@@ -364,8 +337,6 @@ function renderWordSpans(text) {
   currentHighlighted = null;
 }
 
-// Works out where each sentence starts within the full text,
-// so a boundary event inside one sentence can be converted to an absolute position.
 function getSentenceStarts(text, sentenceList) {
   const starts = [];
   let cursor = 0;
@@ -378,8 +349,6 @@ function getSentenceStarts(text, sentenceList) {
   return starts;
 }
 
-// Highlights the word containing this absolute character position, removing
-// the highlight from whichever word was lit up before.
 function highlightWordAt(absolutePosition) {
   let target = null;
   for (let i = 0; i < wordOffsets.length; i++) {
@@ -406,16 +375,14 @@ function clearHighlight() {
 }
 
 // ---------- READING ALOUD ----------
-// The text is read one sentence at a time, so Pause can continue
-// from the word where it stopped (browser pause/resume is unreliable).
 let sentences = [];
 let currentIndex = 0;
-let wordOffset = 0; // where inside the current sentence to continue from (updated word by word)
+let wordOffset = 0;
 let isPlaying = false;
 let isPaused = false;
 let isTranslating = false;
-let runId = 0; // changes on every start/pause/stop so old events are ignored
-let currentUtterance = null; // keep a reference so the browser doesn't garbage-collect it mid-speech
+let runId = 0;
+let currentUtterance = null;
 
 function splitIntoSentences(text) {
   const parts = text.match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g) || [text];
@@ -435,7 +402,6 @@ function finishReading() {
   playPauseBtn.textContent = "▶";
 }
 
-// Stops everything and resets the button
 function resetAudio() {
   runId++;
   synth.cancel();
@@ -458,7 +424,6 @@ function speakCurrentSentence(myRun) {
     return;
   }
 
-  // Only speak the part of the sentence that hasn't been read yet
   const utterance = new SpeechSynthesisUtterance(fullSentence.slice(startOffset));
   currentUtterance = utterance;
 
@@ -468,9 +433,6 @@ function speakCurrentSentence(myRun) {
   const chosen = getSelectedVoice();
   if (chosen) utterance.voice = chosen;
 
-  // Track the word being spoken, so Pause knows exactly where to continue,
-  // and highlight that same word on screen.
-  // (Voices that don't send word events fall back to the start of the sentence part.)
   utterance.addEventListener("boundary", function (e) {
     if (myRun !== runId) return;
     if (e.name && e.name !== "word") return;
@@ -492,8 +454,6 @@ function speakCurrentSentence(myRun) {
   synth.speak(utterance);
 }
 
-// Continue from the current word with a short delay
-// (some browsers drop speech that starts right after cancel())
 function resumeFromCurrentSentence() {
   runId++;
   const myRun = runId;
@@ -503,22 +463,20 @@ function resumeFromCurrentSentence() {
   }, 60);
 }
 
-// PLAY / PAUSE
 playPauseBtn.addEventListener("click", async function () {
   if (isTranslating) return;
 
   if (!isPlaying) {
-    // Start from the beginning: show the story in the voice's language first
     isTranslating = true;
     const myRun = ++runId;
     playPauseBtn.textContent = "…";
 
     const text = await showTextForCurrentVoice();
-    if (myRun !== runId) return;          // Stop was pressed while translating
+    if (myRun !== runId) return;
     if (text === null) { finishReading(); return; }
 
     isTranslating = false;
-    renderWordSpans(text);                 // wrap every word in a <span> for highlighting
+    renderWordSpans(text);
     sentences = splitIntoSentences(text);
     sentenceStarts = getSentenceStarts(text, sentences);
     currentIndex = 0;
@@ -528,12 +486,10 @@ playPauseBtn.addEventListener("click", async function () {
     playPauseBtn.textContent = "❚❚";
     resumeFromCurrentSentence();
   } else if (isPaused) {
-    // Continue from the word where it stopped
     isPaused = false;
     playPauseBtn.textContent = "❚❚";
     resumeFromCurrentSentence();
   } else {
-    // Pause: stop speaking but remember the sentence AND the word (currentIndex, wordOffset)
     isPaused = true;
     runId++;
     synth.cancel();
@@ -541,12 +497,8 @@ playPauseBtn.addEventListener("click", async function () {
   }
 });
 
-// STOP
 stopBtn.addEventListener("click", resetAudio);
 
-// READING SPEED: keep the position.
-// - Playing: continue from the current word with the new setting.
-// - Paused: the new setting is used when you press play.
 function applyNewSetting() {
   if (isPlaying && !isPaused) {
     resumeFromCurrentSentence();
@@ -554,8 +506,6 @@ function applyNewSetting() {
 }
 speedControl.addEventListener("change", applyNewSetting);
 
-// VOICE: same language = keep the position.
-// Different language = stop, then show the story translated (or the original).
 voiceControl.addEventListener("change", async function () {
   if (getSelectedLanguage() !== displayedLang) {
     resetAudio();
@@ -564,7 +514,61 @@ voiceControl.addEventListener("change", async function () {
     applyNewSetting();
   }
 });
-});
+
+// ===============================
+// PERSON 1 - SAVED PASSAGES (Home screen library, stored in the browser)
+// ===============================
+const PASSAGES_KEY = "lexiPassages";
+const MAX_SAVED_PASSAGES = 20;
+
+function getSavedPassages() {
+  try {
+    return JSON.parse(localStorage.getItem(PASSAGES_KEY)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function makeTitle(text) {
+  const words = text.trim().split(/\s+/);
+  const short = words.slice(0, 6).join(" ");
+  return words.length > 6 ? short + "…" : short;
+}
+
+function savePassage(text) {
+  const passages = getSavedPassages();
+  passages.unshift({ title: makeTitle(text), text: text });
+  localStorage.setItem(PASSAGES_KEY, JSON.stringify(passages.slice(0, MAX_SAVED_PASSAGES)));
+  renderPassageList();
+}
+
+function renderPassageList() {
+  const passages = getSavedPassages();
+  const list = document.getElementById("passageList");
+  list.innerHTML = "";
+
+  if (passages.length === 0) {
+    list.innerHTML = "<p>No passages yet. Go to Reading and tap + to add one.</p>";
+    return;
+  }
+
+  passages.forEach(function (p) {
+    const card = document.createElement("div");
+    card.className = "passage";
+    card.textContent = p.title;
+    card.addEventListener("click", function () {
+      loadPassageIntoReader(p.text, p.title);
+      showScreen("reading");
+    });
+    list.appendChild(card);
+  });
+}
+renderPassageList(); // populate Home as soon as the page loads
+
+// ===============================
+// PERSON 2 - ADD A PASSAGE (type text, upload a file, or scan a photo)
+// ===============================
+
 const TextCleaner = (() => {
   function clean(raw) {
     if (!raw || typeof raw !== 'string') return '';
@@ -584,17 +588,9 @@ const TextCleaner = (() => {
     return text.trim();
   }
 
-  function toSentences(text) {
-    if (!text) return [];
-    return text
-      .replace(/([.!?])\s+/g, '$1|')
-      .split('|')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-  }
-
-  return { clean, toSentences };
+  return { clean };
 })();
+
 const FileUploadModule = (() => {
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
@@ -727,12 +723,13 @@ const FileUploadModule = (() => {
           const raw = await extractText(selectedFile);
           if (!raw || !raw.trim()) throw new Error('No readable text found in file.');
           onProcess(raw, 'file-upload');
+          hidePreview();
         } catch (err) {
           console.error(err);
           App.showToast(err.message || 'Extraction failed.', 'error');
         } finally {
           processBtn.disabled = false;
-          processBtn.textContent = '➡️ Extract & Process';
+          processBtn.textContent = 'Extract & Add';
         }
       });
     }
@@ -740,6 +737,7 @@ const FileUploadModule = (() => {
 
   return { init };
 })();
+
 const OcrModule = (() => {
   const imageInput = document.getElementById('imageInput');
   const cameraBtn = document.getElementById('cameraBtn');
@@ -860,6 +858,48 @@ const OcrModule = (() => {
 
   return { init, runOnFile };
 })();
+
+const TextInputModule = (() => {
+  const textarea = document.getElementById('textInput');
+  const charCount = document.getElementById('charCount');
+  const clearBtn = document.getElementById('clearTextBtn');
+  const processBtn = document.getElementById('processTextBtn');
+
+  if (!textarea) {
+    console.warn('[TextInputModule] textarea not found');
+    return { init: () => {} };
+  }
+
+  function updateCharCount() {
+    if (charCount) charCount.textContent = textarea.value.length;
+  }
+
+  function clear() {
+    textarea.value = '';
+    updateCharCount();
+    textarea.focus();
+  }
+
+  function init(onProcess) {
+    textarea.addEventListener('input', updateCharCount);
+    if (clearBtn) clearBtn.addEventListener('click', clear);
+    if (processBtn) {
+      processBtn.addEventListener('click', () => {
+        const text = textarea.value.trim();
+        if (!text) {
+          App.showToast('Please enter some text first.', 'error');
+          return;
+        }
+        onProcess(text, 'text-input');
+        clear();
+      });
+    }
+    updateCharCount();
+  }
+
+  return { init };
+})();
+
 const App = (() => {
   const toastEl = document.getElementById('toast');
   let toastTimer = null;
@@ -873,59 +913,33 @@ const App = (() => {
     toastTimer = setTimeout(() => toastEl.classList.add('hidden'), 3000);
   }
 
-  const outputSection = document.getElementById('outputSection');
-  const processedOutput = document.getElementById('processedOutput');
-  const copyBtn = document.getElementById('copyBtn');
-  const sendBtn = document.getElementById('sendToReaderBtn');
+  const addPassageBtn = document.getElementById('addPassageBtn');
+  const addPassagePanel = document.getElementById('addPassagePanel');
 
-  let lastProcessed = '';
-
+  // Adding a passage: clean the text, load it straight into the reader,
+  // save it to the Home screen's library, then close the + panel.
   function handleProcessedText(raw, source) {
     const cleaned = TextCleaner.clean(raw);
     if (!cleaned) {
       showToast('Text was empty after cleaning.', 'error');
       return;
     }
-    lastProcessed = cleaned;
-    if (processedOutput) processedOutput.value = cleaned;
-    if (outputSection) {
-      outputSection.classList.remove('hidden');
-      outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
-    showToast(`Processed ${wordCount} words from ${source}.`, 'success');
-  }
-
-  function sendToReadingEngine() {
-    if (!lastProcessed) return;
-    const payload = {
-      text: lastProcessed,
-      sentences: TextCleaner.toSentences(lastProcessed),
-      wordCount: lastProcessed.split(/\s+/).filter(Boolean).length,
-      timestamp: new Date().toISOString(),
-    };
-    window.dispatchEvent(new CustomEvent('reader:loadText', { detail: payload }));
-    console.log('[ReadingEngine] Received payload:', payload);
-    showToast('Sent to Reading Engine!', 'success');
+    loadPassageIntoReader(cleaned, makeTitle(cleaned));
+    savePassage(cleaned);
+    if (addPassagePanel) addPassagePanel.classList.add('hidden');
+    showToast('Passage added!', 'success');
   }
 
   function init() {
-    TextInputModule.init(handleProcessedText);
-    FileUploadModule.init(handleProcessedText);
-    OcrModule.init(handleProcessedText);
-
-    if (copyBtn) {
-      copyBtn.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(lastProcessed);
-          showToast('Copied to clipboard!', 'success');
-        } catch {
-          showToast('Copy failed.', 'error');
-        }
+    if (addPassageBtn && addPassagePanel) {
+      addPassageBtn.addEventListener('click', () => {
+        addPassagePanel.classList.toggle('hidden');
       });
     }
 
-    if (sendBtn) sendBtn.addEventListener('click', sendToReadingEngine);
+    TextInputModule.init(handleProcessedText);
+    FileUploadModule.init(handleProcessedText);
+    OcrModule.init(handleProcessedText);
 
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -941,48 +955,3 @@ const App = (() => {
 
   return { showToast };
 })();
-
-const TextInputModule = (() => {
-  const textarea = document.getElementById('textInput');
-  const charCount = document.getElementById('charCount');
-  const clearBtn = document.getElementById('clearTextBtn');
-  const processBtn = document.getElementById('processTextBtn');
-
-  if (!textarea) {
-    console.warn('[TextInputModule] textarea not found');
-    return { init: () => {}, getText: () => '', clear: () => {} };
-  }
-
-  function updateCharCount() {
-    if (charCount) charCount.textContent = textarea.value.length;
-  }
-
-  function clear() {
-    textarea.value = '';
-    updateCharCount();
-    textarea.focus();
-  }
-
-  function getText() {
-    return textarea.value;
-  }
-
-  function init(onProcess) {
-    textarea.addEventListener('input', updateCharCount);
-    if (clearBtn) clearBtn.addEventListener('click', clear);
-    if (processBtn) {
-      processBtn.addEventListener('click', () => {
-        const text = getText().trim();
-        if (!text) {
-          App.showToast('Please enter some text first.', 'error');
-          return;
-        }
-        onProcess(text, 'text-input');
-      });
-    }
-    updateCharCount();
-  }
-
-  return { init, getText, clear };
-})();
-});
