@@ -478,3 +478,4 @@ voiceControl.addEventListener("change", async function () {
     applyNewSetting();
   }
 });
+});
