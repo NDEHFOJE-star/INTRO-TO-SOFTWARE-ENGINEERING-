@@ -90,10 +90,13 @@ body {
 
 .reading-controls {
     display: flex;
-    justify-content:space-between;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 15px;
-    gap:12px
+    gap: 12px
+    
 }
 
 .reading-box {
