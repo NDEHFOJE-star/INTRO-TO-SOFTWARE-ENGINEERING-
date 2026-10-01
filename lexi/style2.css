@@ -107,6 +107,7 @@ body {
     line-height: 1.8;
     color: #222;
     margin: 0;
+    transition: all 0.15s ease;
 }
 
 .settings-placeholder {
@@ -147,7 +148,7 @@ body {
         max-width: 600px;
     }
 
-    .book-list {
+    .passage-list {
         grid-template-columns: 1fr 1fr 1fr;
     }
 }
@@ -158,11 +159,11 @@ body {
         max-width: 900px;
     }
 
-    .book-list {
+    .passage-list {
         grid-template-columns: 1fr 1fr 1fr 1fr;
     }
 
-    #readingtext {
+    #readingText {
         font-size: 22px;
     }
 }
@@ -199,10 +200,6 @@ body {
 
 .accessibility-settings input[type="range"] {
     margin: 10px;
-}
-
-#readingText {
-    transition: all 0.15s ease;
 }
 
 .high-contrast {

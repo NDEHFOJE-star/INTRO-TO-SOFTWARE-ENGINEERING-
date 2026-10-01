@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lexi - Person 1 (Frontend Foundation + UI/UX)</title>
   <link rel="stylesheet" href="style2.css">
 </head>
+
 <body>
+
   <div class="phone">
+
     <div class="header">
       <h1>Lexi</h1>
     </div>
+
     <!-- HOME SCREEN -->
     <div class="screen active" id="home">
       <div class="card">
@@ -18,6 +23,7 @@
         <p>The Otter Who Lost the Moon</p>
         <button class="btn" onclick="showScreen('reading')">Resume</button>
       </div>
+
       <h2>Your Passages</h2>
       <!-- Placeholder content only. Person 2 handles real text/files/OCR. -->
       <div class="passage-list">
@@ -35,6 +41,7 @@
         </div>
       </div>
     </div>
+
     <!-- READING SCREEN -->
     <!-- Person 3: text-to-speech controls -->
     <div class="screen" id="reading">
@@ -68,7 +75,9 @@
           </option>
         </select>
       </div>
+
       <h2>The Otter Who Lost the Moon</h2>
+
       <div class="reading-box">
         <p id="readingText">
           On the night the river froze at the edges, Maya the otter noticed something was missing from the water.
@@ -77,14 +86,71 @@
         </p>
       </div>
     </div>
+
     <!-- SETTINGS SCREEN -->
-    <!-- Person 4: structure only -->
+    <!-- Empty shell only. Person 4 owns the actual controls. -->
     <div class="screen" id="settings">
       <h2>Settings</h2>
-      <div class="settings-placeholder">
-        Reading and accessibility settings will go here.
+      <!-- ACCESSIBILITY SETTINGS -->
+      <div class="accessibility-settings">
+
+        <h3>Font</h3>
+
+        <label for="fontSelect">Choose Font:</label>
+        <select id="fontSelect">
+          <option value="Arial">Arial</option>
+          <option value="Verdana">Verdana</option>
+          <option value="OpenDyslexic">OpenDyslexic</option>
+          <option value="Georgia">Georgia</option>
+        </select>
+
+        <h3>Font Size</h3>
+
+        <button id="decreaseFont">A−</button>
+        <span id="fontSizeDisplay">18px</span>
+        <button id="increaseFont">A+</button>
+
+        <h3>Spacing</h3>
+
+        <div>
+          <label for="letterSpacing">Letter Spacing:</label>
+          <input type="range" id="letterSpacing" min="0" max="10" value="0">
+          <span id="letterSpacingValue">0px</span>
+        </div>
+
+        <div>
+          <label for="wordSpacing">Word Spacing:</label>
+          <input type="range" id="wordSpacing" min="0" max="20" value="0">
+          <span id="wordSpacingValue">0px</span>
+        </div>
+
+        <div>
+          <label for="lineSpacing">Line Spacing:</label>
+          <input type="range" id="lineSpacing" min="1" max="3" step="0.1" value="1.5">
+          <span id="lineSpacingValue">1.5</span>
+        </div>
+
+        <h3>Background & Contrast</h3>
+
+        <label for="backgroundColor">Background:</label>
+        <select id="backgroundColor">
+          <option value="#ffffff">White</option>
+          <option value="#f5f0d8">Cream</option>
+          <option value="#dff0ff">Light Blue</option>
+          <option value="#eeeeee">Light Gray</option>
+        </select>
+
+        <br><br>
+
+        <label for="contrastMode">Contrast:</label>
+        <select id="contrastMode">
+          <option value="normal">Normal</option>
+          <option value="high">High Contrast</option>
+        </select>
+
       </div>
     </div>
+
     <!-- BOTTOM NAV -->
     <div class="nav">
       <button class="active" onclick="showScreen('home')">
@@ -97,7 +163,11 @@
         Settings
       </button>
     </div>
+
   </div>
+
   <script src="script2.js"></script>
+
 </body>
+
 </html>
