@@ -855,3 +855,46 @@ const App = (() => {
 
   return { showToast };
 })();
+const TextInputModule = (() => {
+  const textarea = document.getElementById('textInput');
+  const charCount = document.getElementById('charCount');
+  const clearBtn = document.getElementById('clearTextBtn');
+  const processBtn = document.getElementById('processTextBtn');
+
+  if (!textarea) {
+    console.warn('[TextInputModule] textarea not found');
+    return { init: () => {}, getText: () => '', clear: () => {} };
+  }
+
+  function updateCharCount() {
+    if (charCount) charCount.textContent = textarea.value.length;
+  }
+
+  function clear() {
+    textarea.value = '';
+    updateCharCount();
+    textarea.focus();
+  }
+
+  function getText() {
+    return textarea.value;
+  }
+
+  function init(onProcess) {
+    textarea.addEventListener('input', updateCharCount);
+    if (clearBtn) clearBtn.addEventListener('click', clear);
+    if (processBtn) {
+      processBtn.addEventListener('click', () => {
+        const text = getText().trim();
+        if (!text) {
+          App.showToast('Please enter some text first.', 'error');
+          return;
+        }
+        onProcess(text, 'text-input');
+      });
+    }
+    updateCharCount();
+  }
+
+  return { init, getText, clear };
+})();
